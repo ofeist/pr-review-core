@@ -54,7 +54,7 @@ def parse_diff(raw_diff: str) -> List[DiffFile]:
                 int(hunk_match.group(4) or 1),
             )
             current_hunk_lines = []
-           continue
+            continue
 
         if hunk_meta:
             if line.startswith("+"):
