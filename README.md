@@ -31,7 +31,10 @@ This module:
 - Diffs generated via:
   ```bash
   git diff origin/main...HEAD
+  ```
+
 ❌ Not Supported (for now)
+
 Binary files
 
 Rename-only diffs
