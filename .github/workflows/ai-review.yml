@@ -28,6 +28,19 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Resolve adapter mode
+        id: adapter
+        shell: bash
+        run: |
+          set -euo pipefail
+          mode="${{ vars.AI_REVIEW_ADAPTER_MODE || 'fake' }}"
+          if [[ "$mode" != "fake" && "$mode" != "openai" ]]; then
+            echo "Unsupported adapter mode '$mode'. Falling back to fake." >&2
+            mode="fake"
+          fi
+          echo "adapter=$mode" >> "$GITHUB_OUTPUT"
+          echo "Adapter mode: $mode"
+
       - name: Extract PR diff
         shell: bash
         run: |
@@ -39,14 +52,34 @@ jobs:
             --pr-number "${{ github.event.pull_request.number }}" \
             --output artifacts/pr.diff
 
-      - name: Generate review markdown (fake adapter)
+      - name: Generate review markdown
+        id: review
         shell: bash
+        env:
+          ADAPTER_MODE: ${{ steps.adapter.outputs.adapter }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          OPENAI_TIMEOUT_SECONDS: ${{ vars.OPENAI_TIMEOUT_SECONDS }}
         run: |
           set -euo pipefail
+          if [[ "$ADAPTER_MODE" == "openai" && -z "${OPENAI_API_KEY:-}" ]]; then
+            cat > artifacts/review.md <<'EOF'
+## AI Review
+
+### Summary
+OpenAI mode is enabled but OPENAI_API_KEY is missing.
+
+### Findings
+- No issues found.
+EOF
+            echo "Missing OPENAI_API_KEY for openai mode; wrote controlled fallback output." >&2
+            exit 0
+          fi
+
           python -m core.review.cli \
             --input-format raw \
             --from-file artifacts/pr.diff \
-            --adapter fake \
+            --adapter "$ADAPTER_MODE" \
             > artifacts/review.md
 
       - name: Publish PR comment (upsert)
@@ -59,6 +92,7 @@ jobs:
             const body = [
               marker,
               '## AI PR Review',
+              `- Adapter mode: ${{ steps.adapter.outputs.adapter }}`,
               '',
               review.trim(),
             ].join('\n');
