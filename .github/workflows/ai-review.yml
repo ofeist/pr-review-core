@@ -1,0 +1,49 @@
+﻿name: AI PR Review
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+
+jobs:
+  generate-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Prepare base ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "${{ github.base_ref }}" --depth=1
+
+      - name: Generate review markdown (fake adapter)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          git diff "origin/${{ github.base_ref }}...HEAD" \
+            | python -m core.review.cli --input-format raw --adapter fake \
+            > artifacts/review.md
+
+      - name: Upload review artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-review-markdown
+          path: artifacts/review.md
+          if-no-files-found: error
