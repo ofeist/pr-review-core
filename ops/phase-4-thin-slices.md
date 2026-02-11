@@ -4,7 +4,7 @@
 Break **Phase 4 - GitHub App & Commercial Readiness** into small, end-to-end slices that move from workflow-only automation to product-grade GitHub App architecture.
 
 ## Status
-- Slice 0: pending
+- Slice 0: done
 - Slice 1: pending
 - Slice 2: pending
 - Slice 3: pending
@@ -206,3 +206,4 @@ Phase 4 is complete when the GitHub App backend can receive PR events, generate 
 - Keep workflow-based MVP as fallback until app path is stable.
 - Validate each slice on staging installation before production rollout.
 - Commit per slice with test evidence and migration notes.
+
