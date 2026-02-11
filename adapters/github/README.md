@@ -1,86 +1,84 @@
-﻿# GitHub Adapter Contract (Phase 3 Slice 0)
+﻿# GitHub Adapter Runbook
 
-This document defines the minimum GitHub integration contract for the Phase 3 MVP.
+Phase 3 GitHub integration runbook for PR review automation.
 
-## Scope
-GitHub adapter responsibilities:
-- react to PR lifecycle events in GitHub Actions
-- extract PR diff context
-- run review generation command
-- create/update a PR comment with review markdown
+## Purpose
+This adapter connects GitHub PR events to core review generation and PR comment upsert.
 
-Out of scope for this adapter:
+## Scope Boundaries
+Adapter responsibilities:
+- receive PR event context from GitHub Actions
+- extract PR diff safely
+- run review command
+- upsert managed PR comment
+
+Out of scope:
 - diff parsing internals (`core/diff`)
-- review generation internals (`core/review`)
-- billing, tenancy, hosted control plane
+- review logic internals (`core/review`)
+- hosted backend/billing features
 
-## Trigger Model
-Primary trigger:
-- `pull_request` with activity types:
-- `opened`
-- `synchronize`
-- `reopened`
+## Workflow Entry Point
+- `.github/workflows/ai-review.yml`
 
-Expected behavior:
-- each relevant PR event runs exactly one review workflow job
-- workflow must be idempotent from a comment perspective (upsert, not spam)
+Trigger:
+- `pull_request`: `opened`, `synchronize`, `reopened`
 
-## I/O Contract
-Workflow input context:
-- repository
-- pull request number
-- base ref / head ref
-- token and optional model secrets
-
-Workflow output:
-- canonical markdown review text
-- PR comment create/update via GitHub API
-
-## Comment Marker Strategy
-Use a stable hidden marker in bot comments so reruns update the same comment.
-
-Recommended marker:
+## Managed Comment Contract
+Marker:
 - `<!-- ai-pr-review:managed -->`
 
 Rules:
-- marker must be present in every managed comment body
-- upsert algorithm searches PR comments for this marker
+- every managed comment must include marker
+- reruns search by marker
 - if found: update existing comment
 - if not found: create new comment
 
+## Diff Extraction
+Script:
+- `adapters/github/scripts/extract_pr_diff.py`
+
+Behavior:
+- resolves base/head commits
+- attempts direct fetch and PR head fallback
+- uses `base...head` when merge-base exists, else `base..head`
+- writes diff to artifact path
+
+## Adapter Modes
+Configured via repository variable:
+- `AI_REVIEW_ADAPTER_MODE`:
+- `fake`
+- `openai`
+
+OpenAI mode:
+- uses `OPENAI_API_KEY` from GitHub Secrets
+- optional vars: `OPENAI_MODEL`, `OPENAI_TIMEOUT_SECONDS`
+
 ## Required GitHub Permissions
-Workflow permissions (minimum):
 - `contents: read`
 - `pull-requests: write`
-
-If listing comments via Issues API path:
 - `issues: write`
 
-## Secrets and Configuration
-Required for OpenAI mode:
-- `OPENAI_API_KEY`
+## Guardrails
+- Graceful fallback on extraction/review failure.
+- Controlled fallback markdown for timeout/cancel/failure.
+- Empty/ignored-only diff handling.
+- Comment size guard via `AI_REVIEW_MAX_COMMENT_CHARS`.
 
-Optional:
-- `OPENAI_MODEL`
-- `OPENAI_TIMEOUT_SECONDS`
+## Operational Checklist
+1. Confirm workflow permissions are set.
+2. Confirm marker comment upsert behavior on repeated PR updates.
+3. Confirm fake mode works without secrets.
+4. Confirm openai mode works with secrets.
+5. Confirm failure mode posts controlled fallback.
+6. Confirm oversize guard truncates safely.
 
-Rules:
-- secrets must only come from GitHub Secrets
-- never commit keys or tokens to repository
-- fake mode must work without secrets
+## Known Limitations (Phase 3)
+- Workflow-driven integration only (no GitHub App).
+- No advanced policy engine for org/team-specific rules.
+- Comment upsert uses marker search in first page of PR comments.
 
-## Failure Behavior Contract
-On review failure:
-- do not leak stack traces into PR comment
-- publish/update controlled fallback message
-- keep logs detailed enough for maintainers
-
-On empty diff / ignored-only diff:
-- skip comment or post concise "no actionable changes" message (single upserted comment)
-
-## Test Checklist (Slice 0)
-- Trigger events are explicitly defined.
-- Marker strategy and upsert rules are explicit.
-- Required permissions are listed.
-- Required/optional secrets are listed.
-- Adapter boundaries vs `core/` are clear.
+## Phase 4 Follow-ups
+- Migrate to GitHub App architecture.
+- Move orchestration from workflow script logic to service endpoint.
+- Add deeper observability and retry control.
+- Improve comment targeting and pagination robustness.

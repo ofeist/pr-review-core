@@ -3,62 +3,96 @@
 Platform-agnostic core for AI-assisted pull request review.
 
 ## Vision
-This project is building a reusable PR review engine with this strategy:
+This project builds a reusable PR review engine with this strategy:
 - Build GitHub-first for fast iteration and adoption.
 - Keep core logic platform-agnostic.
-- Add Bitbucket integration after core and GitHub flow are stable.
+- Add Bitbucket integration after GitHub flow is stable.
 
-The detailed roadmap is in `ops/ROADMAP.md`.
+Roadmap: `ops/ROADMAP.md`
 
 ## Current Scope
-Today, this repository contains the Diff Foundation (Phase 1):
-- Read diff input from stdin, file, or raw string.
-- Parse unified git diff into deterministic Python dataclasses.
-- Filter noisy files (lockfiles, vendor/generated, minified assets).
-- Output stable JSON through a CLI entrypoint.
+Implemented in this repository:
+- Phase 1: diff parsing foundation (`core/diff`)
+- Phase 2: review core (`core/review`)
+- Phase 3 MVP: GitHub Actions PR workflow with comment upsert
 
 Out of scope right now:
-- PR platform integration (GitHub/Bitbucket APIs)
-- LLM prompting and model calls
-- Automated comment publishing
-- Billing, analytics, and multi-tenant APIs
+- GitHub App backend (Phase 4)
+- Billing, tenancy, hosted control plane
+- Bitbucket adapter (Phase 5)
 
 ## Repository Layout
-- `core/diff/types.py`: canonical data model (`DiffFile`, `DiffHunk`, `Change`, `ChangeType`)
-- `core/diff/read_diff.py`: input reader
-- `core/diff/parse_diff.py`: unified diff parser
-- `core/diff/filters.py`: ignore/noise filtering
-- `core/diff/cli.py`: parse + filter + JSON output
-- `core/diff/README.md`: module-level diff parser contract
-- `ops/ROADMAP.md`: project roadmap and phase plan
-- `ops/roadmap-hr.txt`: Croatian planning notes
-- `ops/roadmap-en.txt`: English translation of planning notes
+- `core/README.md`: architecture boundaries
+- `core/diff/README.md`: diff parsing module contract
+- `core/review/README.md`: review module contract and CLI
+- `.github/workflows/ai-review.yml`: GitHub PR review workflow
+- `adapters/github/README.md`: GitHub adapter runbook
+- `adapters/github/scripts/extract_pr_diff.py`: robust PR diff extraction script
+- `ops/ROADMAP.md`: project roadmap
+- `ops/phase-3-thin-slices.md`: Phase 3 execution slices
+- `ops/phase-3-validation-checklist.md`: Phase 3 manual acceptance checklist
 
-## Quick Usage
-Parse a git diff and print JSON:
+## Local Usage
+Raw diff review:
 
 ```bash
-git diff origin/main...HEAD | python -m core.diff.cli
+git diff origin/main...HEAD | python -m core.review.cli --input-format raw --adapter fake
 ```
 
-Use parser directly in Python:
+Parsed JSON review:
 
-```python
-from core.diff.read_diff import read_diff
-from core.diff.parse_diff import parse_diff
-from core.diff.filters import filter_diff_files
-
-raw = read_diff(from_string="""diff --git a/a.py b/a.py\n@@ -1,0 +1,1 @@\n+print('hi')\n""")
-files = parse_diff(raw)
-filtered = filter_diff_files(files)
+```bash
+git diff origin/main...HEAD | python -m core.diff.cli | python -m core.review.cli --input-format parsed-json --adapter fake
 ```
+
+## GitHub Actions Setup (Phase 3 MVP)
+Workflow file:
+- `.github/workflows/ai-review.yml`
+
+Trigger:
+- `pull_request`: `opened`, `synchronize`, `reopened`
+
+Required workflow permissions:
+- `contents: read`
+- `pull-requests: write`
+- `issues: write`
+
+### Configuration
+Repository Variables:
+- `AI_REVIEW_ADAPTER_MODE`: `fake` (default) or `openai`
+- `OPENAI_MODEL` (optional)
+- `OPENAI_TIMEOUT_SECONDS` (optional)
+- `AI_REVIEW_MAX_COMMENT_CHARS` (optional, default `60000`)
+
+Repository Secrets:
+- `OPENAI_API_KEY` (required only for `openai` mode)
+
+### Behavior Summary
+- Extracts PR diff via `adapters/github/scripts/extract_pr_diff.py`.
+- Runs `core.review.cli` in selected adapter mode.
+- Upserts one managed PR comment using marker `<!-- ai-pr-review:managed -->`.
+- Handles failure and timeout with controlled fallback markdown.
+- Handles empty/ignored-only diffs with "No actionable code changes" output.
+- Truncates oversized comment output and points to workflow artifact.
+
+## Troubleshooting
+- Missing OpenAI key in `openai` mode:
+Workflow posts controlled fallback summary instead of hard failing.
+
+- Duplicate comments:
+Ensure marker `<!-- ai-pr-review:managed -->` remains unchanged.
+
+- No actionable changes:
+Expected behavior for empty or fully ignored diffs.
+
+- Oversized output:
+Workflow truncates comment and keeps full/previewed content in artifact.
 
 ## Roadmap Snapshot
-- Phase 1: Diff Foundation (implemented, now stabilizing with stronger tests/docs)
-- Phase 2: Review Core (prompt builder, rubric, model adapter, chunking)
-- Phase 3: GitHub MVP integration (PR trigger to comment flow)
+- Phase 1: Diff Foundation
+- Phase 2: Review Core
+- Phase 3: GitHub MVP integration
 - Phase 4: GitHub App and commercial readiness
-- Phase 5: Bitbucket adapter and parity
+- Phase 5: Bitbucket adapter parity
 
-See `ops/ROADMAP.md` for details and exit criteria.
-
+See `ops/ROADMAP.md` for full details.

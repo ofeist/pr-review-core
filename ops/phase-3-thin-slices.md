@@ -12,7 +12,7 @@ Break **Phase 3 - GitHub-First Integration (MVP)** into small, end-to-end slices
 - Slice 5: done
 - Slice 6: done
 - Slice 7: done
-- Slice 8: pending
+- Slice 8: done
 
 ## Phase 3 Goal (from roadmap)
 Fully automate AI PR review comments on GitHub:
@@ -199,6 +199,7 @@ Phase 3 is complete when end-to-end AI comment upsert works on a test GitHub rep
 - Keep fake mode as default until OpenAI path is verified.
 - Validate each slice on a disposable test PR before moving to the next.
 - Commit after each slice with test evidence in commit message.
+
 
 
 
