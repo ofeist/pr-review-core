@@ -32,7 +32,7 @@ Build a platform-agnostic AI PR review engine that starts GitHub-first for faste
 
 ## Phase Roadmap
 
-### Phase 1 - Diff Foundation (Completed / Stabilize)
+### Phase 1 - Diff Foundation
 Goal: deterministic diff-to-JSON pipeline.
 - Confirm parser behavior on real-world diffs (including noisy and edge-ish unified diffs).
 - Harden test coverage with fixture-based tests (not only manual scripts).
@@ -112,4 +112,5 @@ Exit criteria:
 2. Implement prompt builder + review rubric module in `core`.
 3. Add initial LLM adapter and local CLI command for offline review generation.
 4. Create GitHub Action MVP to post PR comments from generated markdown.
+
 

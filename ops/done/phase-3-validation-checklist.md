@@ -50,3 +50,15 @@ Manual acceptance checklist for GitHub MVP integration.
 - One managed comment is consistently upserted.
 - No secret leakage in logs or comments.
 - Failure and timeout behavior remains user-safe.
+
+## Validation Result
+- Date: 2026-02-11
+- Outcome: validated on real PR run
+- Observed comment status:
+- `Adapter mode: fake`
+- `Extract step: success`
+- `Actionable diff: true`
+- `Review step: success`
+- Final review body:
+- `Reviewed 1 chunk(s). No actionable findings after filtering.`
+- `No issues found.`
