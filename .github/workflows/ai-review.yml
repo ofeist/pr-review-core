@@ -26,19 +26,25 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Prepare base ref
+      - name: Extract PR diff
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin "${{ github.base_ref }}" --depth=1
+          mkdir -p artifacts
+          python adapters/github/scripts/extract_pr_diff.py \
+            --base-sha "${{ github.event.pull_request.base.sha }}" \
+            --head-sha "${{ github.event.pull_request.head.sha }}" \
+            --pr-number "${{ github.event.pull_request.number }}" \
+            --output artifacts/pr.diff
 
       - name: Generate review markdown (fake adapter)
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p artifacts
-          git diff "origin/${{ github.base_ref }}...HEAD" \
-            | python -m core.review.cli --input-format raw --adapter fake \
+          python -m core.review.cli \
+            --input-format raw \
+            --from-file artifacts/pr.diff \
+            --adapter fake \
             > artifacts/review.md
 
       - name: Upload review artifact
