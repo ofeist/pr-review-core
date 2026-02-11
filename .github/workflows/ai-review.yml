@@ -9,6 +9,8 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
+  issues: write
 
 jobs:
   generate-review:
@@ -46,6 +48,27 @@ jobs:
             --from-file artifacts/pr.diff \
             --adapter fake \
             > artifacts/review.md
+
+      - name: Publish PR comment (create-only)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('artifacts/review.md', 'utf8');
+            const marker = '<!-- ai-pr-review:managed -->';
+            const body = [
+              marker,
+              '## AI PR Review',
+              '',
+              review.trim(),
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
 
       - name: Upload review artifact
         uses: actions/upload-artifact@v4
