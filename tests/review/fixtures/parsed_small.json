@@ -1,0 +1,17 @@
+﻿[
+  {
+    "path": "src/auth/login.py",
+    "hunks": [
+      {
+        "old_start": 10,
+        "old_length": 1,
+        "new_start": 10,
+        "new_length": 2,
+        "changes": [
+          { "type": "context", "content": "def login(user):" },
+          { "type": "add", "content": "    return user" }
+        ]
+      }
+    ]
+  }
+]
