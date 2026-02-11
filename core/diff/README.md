@@ -1,166 +1,77 @@
-# Diff Parser – Scope & Specification
+﻿# core/diff Module
 
-This module is responsible for **reading and parsing git diffs** into a
-structured, deterministic format that can be consumed by the review engine.
-
-It is intentionally **dumb and limited**.
-
----
+Deterministic diff parsing module for the project core.
 
 ## Purpose
+Convert raw unified git diff text into a structured, testable representation.
 
-- Take a raw `git diff` (unified diff format)
-- Convert it into structured data (`DiffFile`, `DiffHunk`, `Change`)
-- Do **nothing else**
+This module is intentionally limited:
+- It reads and parses diff content.
+- It does not perform code review decisions.
+- It does not call LLMs.
+- It does not talk to GitHub or Bitbucket.
 
-This module:
-- does NOT know what a PR is
-- does NOT talk to GitHub / Bitbucket
-- does NOT call any LLM
-- does NOT make decisions
+## Responsibilities
+- `read_diff.py`: load raw diff text from `from_string`, `from_file`, or `stdin`.
+- `parse_diff.py`: convert unified diff text into `DiffFile[]`.
+- `filters.py`: remove noisy files after parsing.
+- `types.py`: define canonical dataclasses used by the rest of core.
 
----
+## Data Model
+Defined in `core/diff/types.py`:
+- `ChangeType`: `add`, `remove`, `context`
+- `Change`: one line-level change
+- `DiffHunk`: hunk metadata and list of changes
+- `DiffFile`: file path and hunks (`language` optional)
 
 ## Supported Input
+- Unified diff format (`git diff` default)
+- Text files
+- Typical source-code PR diffs
 
-### ✅ Supported
-- Unified diff (default `git diff` output)
-- Text-based source files
-- Diffs generated via:
-  ```bash
-  git diff origin/main...HEAD
-❌ Not Supported (for now)
-Binary files
+## Not Supported (Current)
+- Binary file diffs
+- Rename-only metadata handling
+- File mode-only changes
+- Submodule-specific parsing
 
-Rename-only diffs
+Unsupported or noisy sections should be skipped safely instead of crashing.
 
-File mode changes
+## Parsing Rules
+- Split files by `diff --git a/... b/...` headers.
+- Parse hunks from `@@ -old,len +new,len @@`.
+- Parse line prefixes: `+` as `add`, `-` as `remove`, and leading space as `context`.
 
-Submodules
+## Filtering Rules
+Filtering is a separate step and currently ignores patterns such as:
+- lockfiles: `package-lock.json`, `yarn.lock`, `poetry.lock`
+- generated/vendor directories: `vendor/`, `node_modules/`, `dist/`, `build/`
+- minified assets: `*.min.js`, `*.min.css`
 
-These cases should be ignored or skipped gracefully.
+## CLI
+Print parsed and filtered JSON from stdin diff:
 
-Parsing Rules
-Files
-Diff is split by diff --git
+```bash
+git diff origin/main...HEAD | python -m core.diff.cli
+```
 
-File path is extracted from diff header
+## Boundaries
+Belongs in this module:
+- deterministic text parsing
+- stable output shape
+- parser-level resilience
 
-Each file becomes one DiffFile object
+Does not belong in this module:
+- AI prompt design
+- bug/security/performance judgment
+- confidence scoring
+- PR metadata handling
+- comment publishing
 
-Hunks
-Hunks are identified by:
-
-@@ -old_start,old_len +new_start,new_len @@
-Hunks without meaningful changes may be ignored
-
-Lines
-+ → added line
-
-- → removed line
-
-→ context line
-
-Context-only hunks do not need to be preserved.
-
-Ignored Files & Directories
-The following are excluded by default:
-
-Lock files:
-
-package-lock.json
-
-yarn.lock
-
-poetry.lock
-
-Vendor / generated directories:
-
-vendor/
-
-node_modules/
-
-dist/
-
-build/
-
-Minified assets:
-
-*.min.js
-
-*.min.css
-
-Filtering happens after parsing, as a separate step.
-
-Output Data Model (Conceptual)
-The parser outputs a list of files with hunks and line-level changes.
-
-Example (simplified):
-
-[
-  {
-    "path": "src/auth/login.py",
-    "language": "python",
-    "hunks": [
-      {
-        "old_start": 12,
-        "new_start": 14,
-        "changes": [
-          { "type": "add", "content": "if not user:" },
-          { "type": "add", "content": "    return None" }
-        ]
-      }
-    ]
-  }
-]
-Exact class / dataclass definitions live in code.
-
-Responsibility Boundaries
-The diff parser is responsible for:
-
-reading diff input
-
-parsing it into a structured format
-
-The diff parser is NOT responsible for:
-
-language semantics
-
-code quality analysis
-
-prompt construction
-
-noise filtering
-
-confidence scoring
-
-If a feature requires knowledge of:
-
-PR metadata
-
-repository rules
-
-AI behavior
-
-→ it does NOT belong here.
-
-Design Philosophy
-Deterministic
-
-Side-effect free
-
-Easy to test with static diff fixtures
-
-Optimized for clarity over completeness
-
-80% correct and predictable > 100% clever.
-
-Testing Strategy
-Static diff fixtures
-
-Real diffs from small PRs
-
-JSON snapshot comparison
-
-No integration tests with git hosting platforms.
-
+## Testing Direction
+Current tests are basic scripts in repo root. The next step is fixture-based tests covering:
+- empty diffs
+- multi-file diffs
+- multi-hunk files
+- noisy headers and lines
+- ignored file patterns

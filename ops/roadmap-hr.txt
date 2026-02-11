@@ -1,0 +1,890 @@
+ja: zelim automatizirati PR tako da ga AI pregleda
+ti: Mentalni model (big picture)
+Cilj ti je ovo:
+PR otvoren → pipeline se pokrene → AI pročita diff → AI napiše review → komentar se pojavi u PR-u
+Tehnički gledano, trebaš spojiti 4 stvari:
+1.	Bitbucket event (PR created / updated)
+2.	Kod koji skuplja diff
+3.	AI model koji analizira kod
+4.	Bot koji komentira PR
+________________________________________
+1️⃣ Odakle krenuti (minimal viable setup)
+Preporučeni start:
+👉 Bitbucket Pipelines + OpenAI API (ili drugi LLM)
+Zašto?
+•	Pipelines već imaš uz git
+•	Ne moraš hostati server
+•	Sve se događa “automatski”
+________________________________________
+2️⃣ Trigger: kad se AI review pokreće
+Imaš dvije opcije:
+Opcija A — Bitbucket Pipelines (najčešće)
+Pipeline se pokreće:
+•	kad se otvori PR
+•	kad se PR updatea (novi commit)
+U bitbucket-pipelines.yml definiraš:
+•	trigger: pull-request
+•	skriptu koja:
+o	povuče diff
+o	pošalje ga AI-ju
+o	pošalje komentar natrag
+✅ najjednostavnije
+❌ manje fleksibilno
+________________________________________
+Opcija B — Webhook + vlastiti servis
+Bitbucket → webhook → tvoj server → AI → Bitbucket API
+✅ maksimalna kontrola
+❌ više posla
+Za prvi pokušaj: Opcija A.
+________________________________________
+3️⃣ Kako AI “vidi” PR
+U pipelineu:
+1.	checkout repo
+2.	izvučeš diff između:
+o	target branch (npr. main)
+o	PR branch
+Primjeri inputa za AI:
+•	git diff origin/main...HEAD
+•	samo promijenjeni fajlovi
+•	samo .js, .py, itd.
+💡 Nemoj slati cijeli repo — samo diff.
+________________________________________
+4️⃣ Kako izgleda prompt za AI (ključno!)
+Nemoj samo:
+“Review this code”
+Bolje nešto ovako (konceptualno):
+You are a senior software engineer.
+Review the following pull request diff.
+Focus on:
+•	bugs
+•	security issues
+•	performance problems
+•	readability
+•	breaking changes
+If everything looks fine, say so explicitly.
+Output markdown suitable for a PR comment.
+To je 80% kvalitete reviewa.
+________________________________________
+5️⃣ Gdje AI piše komentar
+Bitbucket ima REST API:
+•	endpoint za PR comments
+•	trebaš:
+o	repo
+o	PR ID
+o	auth token (bot user)
+Pipeline:
+•	generira tekst
+•	POST na Bitbucket API
+•	komentar se pojavi kao da ga je napisao bot 🤖
+________________________________________
+6️⃣ Kako to izgleda u praksi (flow)
+PR opened
+   ↓
+Bitbucket Pipeline
+   ↓
+Extract git diff
+   ↓
+Send diff → AI
+   ↓
+Receive review text
+   ↓
+POST comment to PR
+Gotovo.
+________________________________________
+7️⃣ Što obavezno dodati (lessons learned)
+🔒 Sigurnost
+•	API key u repo variables
+•	nikad u git
+📏 Limiti
+•	veliki diff → chunkaj
+•	ili review po fajlu
+🧠 Kontekst
+•	dodaj:
+o	coding standards
+o	jezik / framework
+o	“ovo je legacy code”
+🚫 Noise control
+•	neka AI:
+o	ne komentira formatting
+o	ne ponavlja obvious stvari
+o	ne izmišlja probleme
+________________________________________
+8️⃣ Level-up ideje (kad proradi osnovno)
+•	AI only comments if:
+o	score > X
+o	found critical issues
+•	različiti promptovi:
+o	security review
+o	performance review
+•	label PR-a:
+o	ai-reviewed
+•	summary + inline comments
+•	“approve / request changes” signal
+________________________________________
+9️⃣ Gotova rješenja (ako ne želiš graditi sve)
+Postoje alati (razne kvalitete):
+•	PR AI reviewers (komercijalni)
+•	Open-source GitHub-first (Bitbucket ponekad slabije podržan)
+Ako želiš full kontrolu i privatnost → DIY je bolji.
+________________________________________
+Kako dalje?
+Mogu ti:
+•	složiti konkretan bitbucket-pipelines.yml
+•	napisati točan prompt za tvoj stack
+•	predložiti model + cijenu
+•	ili dizajnirati “AI reviewer rubric” (što smije / ne smije komentirati)
+Reci:
+👉 koji jezik / framework
+👉 koliko je velik repo
+👉 želiš li POC ili “production-ready” setup
+
+
+
+ja: kako je najbolje to sve razviti i plasirati? (gh vs bitbucket)?
+ti: TL;DR preporuka (ako želiš odmah odgovor)
+👉 Razvij GitHub-first, ali arhitekturu drži platform-agnostičnom.
+👉 Bitbucket dodaj kasnije kao differentiator, ne kao početnu točku.
+Sad zašto i kako.
+________________________________________
+1️⃣ GH vs Bitbucket — hladna realnost tržišta
+📊 GitHub
+Prednosti
+•	Ogromna baza devova (default platform)
+•	GitHub Actions + Apps = savršeno tlo za PR botove
+•	Devovi navikli instalirati botove
+•	Marketplace = distribucija + trust
+•	Lakše dobiti:
+o	feedback
+o	GitHub stars
+o	open-source kontribucije
+o	prve korisnike
+Nedostatci
+•	Brutalna konkurencija
+•	Više “AI noise-a”
+________________________________________
+📊 Bitbucket
+Prednosti
+•	Manje konkurencije
+•	Enterprise / legacy timovi
+•	Jira / Atlassian ekosustav
+•	Ljudi žele AI, ali ga nemaju
+Nedostatci
+•	Slabiji ekosustav
+•	Manje open-source publike
+•	Teži onboarding
+•	Nema “Marketplace momentuma” kao GH
+________________________________________
+🧠 Zaključak
+Ako krećeš od nule → GitHub-first je racionalan izbor.
+Ako ciljaš enterprise / naplatu → Bitbucket postaje zlato kasnije.
+________________________________________
+2️⃣ Kako razviti: arhitektura koja te ne zaključa
+🔑 Zlatno pravilo
+Core logika ≠ platform integracija
+Predložena arhitektura
+/core
+  - diff parser
+  - prompt builder
+  - LLM adapter (OpenAI, Anthropic…)
+  - review rules engine
+
+/adapters
+  /github
+    - webhook handler
+    - PR comment publisher
+  /bitbucket
+    - webhook handler
+    - PR comment publisher
+
+/cli
+  - local testiranje
+  - CI usage
+
+/api (optional)
+  - SaaS endpoint
+Tako:
+•	review engine pišeš jednom
+•	platforme samo “tanke” adaptere
+________________________________________
+3️⃣ Kako krenuti — preporučeni redoslijed
+🥇 Faza 1 — GitHub Action (open-source)
+Zašto?
+•	Najbrži time-to-value
+•	Minimalna infrastruktura
+•	Lak feedback loop
+Napraviti:
+•	GitHub Action
+•	.github/workflows/ai-review.yml
+•	koristi OpenAI / Claude API
+•	komentira PR
+➡️ Ovo ti je PoC + marketing alat.
+________________________________________
+🥈 Faza 2 — GitHub App (semi-commercial)
+Kad vidiš da ljudi koriste:
+•	GitHub App
+•	webhook → tvoj backend
+•	centralizirana logika
+•	billing (Stripe)
+➡️ Ovo je proizvod.
+________________________________________
+🥉 Faza 3 — Bitbucket integracija
+Sad si u prednosti:
+•	već imaš stabilan core
+•	Bitbucket adapter je “samo” novi integration layer
+➡️ Ovdje se naplaćuje ozbiljnije.
+________________________________________
+4️⃣ Open-source vs commercial — pametna kombinacija
+🧩 Najbolji pattern (provjeren)
+Open-core model
+Dio	Status
+Core PR review	open-source
+Advanced rules	paid
+Analytics	paid
+Team policies	paid
+Hosted service	paid
+Ljudi:
+•	vjeruju open-sourceu
+•	plate za convenience
+________________________________________
+5️⃣ Kako se plasirati (ne samo “objaviti”)
+🎯 GitHub-first distribucija
+•	README s GIF-om (kritično)
+•	30-sek demo
+•	“Before / After PR”
+•	GitHub Marketplace listing
+📣 Early traction
+•	Hacker News (Show HN)
+•	Reddit (r/programming, r/devops)
+•	LinkedIn (enterprise crowd)
+•	Dev Twitter
+________________________________________
+6️⃣ Što će te razlikovati (ovo je bitno)
+❌ “AI reviews code” — svi to govore
+✅ Ovo prodaje:
+•	Signal > noise
+•	“Comments only if confidence > X”
+•	“No style comments”
+•	“Security-only mode”
+•	“Explain why, not what”
+Ljudi mrze spam u PR-ovima.
+________________________________________
+7️⃣ Monetizacija — realne opcije
+GitHub
+•	per repo / per seat
+•	$10–30 / dev / month
+Bitbucket
+•	team / org pricing
+•	$100–500 / month
+•	lakše dobiti approval
+________________________________________
+8️⃣ Moj iskren savjet
+Ako mi kažeš:
+•	radiš solo ili s timom
+•	želiš open-source kredibilitet ili revenue
+•	ciljaš devove ili management
+mogu ti:
+•	nacrtati konkretan roadmap (0 → 1 → 10k ARR)
+•	pomoći dizajnirati MVP feature set
+•	pomoći oko naminga + positioning
+Ali da odgovorim jasno na tvoje pitanje:
+Razvij GitHub-first.
+Plasiraj open-source.
+Monetiziraj kroz GitHub App.
+Bitbucket dodaj kad imaš traction.
+
+
+faza 1
+Evo organizacijskog plana za FAZU 1 / Dan 1 — ne kod, nego kako točno strukturirati posao da završiš dan s ✔️ testom.
+________________________________________
+Cilj dana (jasno i mjerljivo)
+Na kraju dana možeš napraviti:
+git diff origin/main...HEAD | ai-review parse
+i dobiti:
+[
+  {
+    "path": "src/auth/login.ts",
+    "language": "ts",
+    "hunks": [
+      {
+        "oldStart": 12,
+        "newStart": 14,
+        "changes": [
+          { "type": "add", "content": "if (!user) return null" }
+        ]
+      }
+    ]
+  }
+]
+Ako to radi → Dan 1 je gotov.
+________________________________________
+Mentalna podjela dana (4 bloka)
+BLOK 1 — Spec & granice (45–60 min)
+Ne pišeš kod odmah.
+Odgovori (u bilješke / README):
+•	koje formate diffa podržavaš:
+o	✅ unified diff (default git)
+o	❌ rename / binary (za sada)
+•	što ne parsiraš:
+o	context-only hunks
+o	binary files
+•	maksimalna odgovornost parsera:
+o	čitati diff
+o	pretvoriti u strukturu
+o	ništa više
+➡️ Ovo sprječava scope creep.
+________________________________________
+BLOK 2 — Struktura /core/diff (30 min)
+Napraviti minimalnu strukturu:
+/core
+  /diff
+    - readDiff.ts
+    - parseDiff.ts
+    - filters.ts
+    - types.ts
+types.ts
+Definiraš jedini canonical shape:
+•	DiffFile
+•	DiffHunk
+•	Change
+👉 Ovo je “ugovor” za cijeli core.
+________________________________________
+BLOK 3 — Implementacija po slojevima (2–3 h)
+1️⃣ readDiff
+Jedna odgovornost:
+•	stdin
+•	ili file
+•	ili raw string
+Output: string
+Bez parsanja.
+________________________________________
+2️⃣ parseDiff
+Input: raw diff string
+Output: DiffFile[]
+Radiš:
+•	split po diff --git
+•	extract path
+•	extract hunks (@@ -x,y +a,b @@)
+•	linije:
+o	+ → add
+o	- → remove
+o	space → context
+Ne optimiziraj.
+Ne edge-caseaj.
+Napravi da radi na 80% diffova.
+________________________________________
+3️⃣ filters
+Pipeline-style:
+files
+  → removeLockFiles
+  → removeVendor
+  → removeGenerated
+Rules hardcoded:
+•	package-lock.json
+•	yarn.lock
+•	vendor/
+•	dist/
+•	*.min.js
+________________________________________
+BLOK 4 — Manual test (30–45 min)
+Napraviti:
+•	mali fake diff (2 fajla)
+•	jedan pravi PR diff iz vlastitog repa
+Testirati:
+•	prazni diff
+•	samo lockfile diff
+•	normalan code diff
+Output mora biti:
+•	validan JSON
+•	stabilan shape
+➡️ Ako ovo prođe → commit.
+________________________________________
+Checklist (copy-paste friendly)
+Na kraju dana mora biti:
+•	DiffFile[] tip definiran
+•	parser radi na realnom diffu
+•	lock / vendor ignorirani
+•	CLI / script koji ispisuje JSON
+•	README: “How diff parsing works”
+Ako nešto od ovoga fali → dan nije gotov.
+________________________________________
+Što SVJESNO ne radiš danas
+❌ language detection (može kasnije)
+❌ perfect hunk ranges
+❌ rename detection
+❌ inline positions
+❌ performance tuning
+Sve to je Dan 3+ problem.
+________________________________________
+Kako znaš da si uspio
+Ako sutra možeš:
+•	uzeti isti JSON
+•	poslati ga prompt builderu
+•	bez da diraš parser
+→ arhitektura je čista.
+________________________________________
+Ako želiš, sljedeće mogu:
+•	pomoći ti definirati točne TypeScript tipove
+•	predložiti gotovu libu vs ručni parser (tradeoff)
+•	ili razbiti Dan 2 istim ovakvim planom
+Reci samo.
+
+
+blok 2
+👉 **BLOK 2 – struktura /core/diff + Python dataclasses**
+Savršeno. Sad ulazimo u čisti, mirni, deterministički dio 😄
+BLOK 2 = postavljamo kostur koji se kasnije više ne dira.
+Ići ću ovim redom:
+1.	struktura foldera
+2.	dataclasses (točan shape)
+3.	kratka pravila kako se koriste
+Bez implementacije parsanja još.
+________________________________________
+1️⃣ Struktura /core/diff
+Minimalna, ali zdrava:
+/core
+  /diff
+    __init__.py
+    types.py        # dataclasses (kanonski model)
+    read_diff.py    # čitanje raw diff-a (stdin/file/string)
+    parse_diff.py   # raw diff -> DiffFile[]
+    filters.py      # ignore rules (lock, vendor, generated)
+    README.md
+Za BLOK 2 danas:
+•	radiš samo types.py
+•	ostalo može biti prazno ili s TODO komentarom
+________________________________________
+2️⃣ types.py — kanonski model (najbitniji file)
+Ovo je ugovor za cijeli /core.
+Ako je ovo čisto, sve ostalo sjedne prirodno.
+# core/diff/types.py
+
+from dataclasses import dataclass
+from enum import Enum
+from typing import List, Optional
+
+
+class ChangeType(str, Enum):
+    ADD = "add"
+    REMOVE = "remove"
+    CONTEXT = "context"
+
+
+@dataclass(frozen=True)
+class Change:
+    """
+    Single line-level change inside a diff hunk.
+    """
+    type: ChangeType
+    content: str
+
+
+@dataclass(frozen=True)
+class DiffHunk:
+    """
+    A contiguous block of changes in a file.
+    """
+    old_start: int
+    old_length: int
+    new_start: int
+    new_length: int
+    changes: List[Change]
+
+
+@dataclass(frozen=True)
+class DiffFile:
+    """
+    All changes related to a single file.
+    """
+    path: str
+    hunks: List[DiffHunk]
+    language: Optional[str] = None
+Zašto ovako (kratko, ali važno)
+•	frozen=True
+o	nema mutiranja usred pipelinea
+o	lakše debugirati
+•	Enum za ChangeType
+o	nema magic stringova
+•	language: Optional
+o	parser ne mora znati jezik
+o	može se dodati kasnije (ili u drugom layeru)
+________________________________________
+3️⃣ Što JE, a što NIJE odgovornost ovih tipova
+✔️ OVI TIPOVI RADE
+•	predstavljaju što se promijenilo
+•	mogu se JSON-izirati
+•	mogu se testirati bez git-a
+❌ OVI TIPOVI NE RADE
+•	ne znaju što je PR
+•	ne znaju line numbers u fajlu
+•	ne znaju je li nešto bug
+•	ne znaju kako se komentira kod
+Ako se uloviš da želiš dodati:
+•	severity
+•	confidence
+•	comment
+→ to je već drugi layer, ne diff.
+________________________________________
+4️⃣ Mini sanity-check (bez pravog koda)
+Ako možeš u Python REPL-u napraviti ovo:
+from core.diff.types import DiffFile, DiffHunk, Change, ChangeType
+
+diff = DiffFile(
+    path="src/auth/login.py",
+    hunks=[
+        DiffHunk(
+            old_start=10,
+            old_length=2,
+            new_start=10,
+            new_length=4,
+            changes=[
+                Change(ChangeType.ADD, "if not user:"),
+                Change(ChangeType.ADD, "    return None"),
+            ],
+        )
+    ],
+    language="python",
+)
+i ništa ti ne smrdi — BLOK 2 je uspio.
+________________________________________
+5️⃣ Checklist za BLOK 2
+Na kraju ovog koraka:
+•	/core/diff/types.py postoji
+•	koristi @dataclass
+•	nema business logike
+•	README i tipovi se slažu
+•	možeš ručno instancirati objekte
+Ako je sve ✔️ → commitaj odmah.
+________________________________________
+Sljedeći korak (BLOK 3 – implementacija)
+Logičan nastavak je:
+👉 read_diff.py (najlakši dio)
+•	stdin
+•	file path
+•	raw string
+Bez parsanja, bez pameti.
+Ako želiš, mogu:
+•	dati točan skeleton za read_diff.py
+•	ili nastaviti ovim tempom: blok po blok, kao mini sprint
+Reci kako želiš nastaviti 👌
+
+
+blok 3
+BLOK 3 = najčišći mogući komad posla. Ako ga napraviš pravilno, nikad ga više ne diraš.
+________________________________________
+BLOK 3 — read_diff.py
+Cilj bloka (jedna rečenica)
+Imati jedan način da dobiješ raw git diff string iz:
+•	stdin-a
+•	file-a
+•	već postojećeg stringa
+Bez parsanja. Bez logike. Bez pameti.
+________________________________________
+Mentalni model (bitno)
+read_diff.py ne zna:
+•	što je git
+•	što je diff format
+•	što će se s tim stringom dogoditi
+On samo odgovara na pitanje:
+“Odakle dolazi tekst?”
+________________________________________
+API koji ciljaš (prije koda)
+Na kraju želiš moći raditi ovo:
+from core.diff.read_diff import read_diff
+
+raw = read_diff()
+raw = read_diff(from_file="diff.txt")
+raw = read_diff(from_string=some_diff)
+👉 uvijek vraća str
+Ako ne zna što da radi → baca jasan exception.
+________________________________________
+Struktura file-a
+/core/diff
+  read_diff.py
+________________________________________
+Implementacija: read_diff.py
+Ovo je gotov, finalni kod za BLOK 3.
+# core/diff/read_diff.py
+
+import sys
+from typing import Optional
+
+
+class DiffReadError(Exception):
+    """Raised when diff input cannot be read."""
+
+
+def read_diff(
+    *,
+    from_file: Optional[str] = None,
+    from_string: Optional[str] = None,
+) -> str:
+    """
+    Read a raw git diff from one of the supported sources.
+
+    Priority:
+    1. from_string
+    2. from_file
+    3. stdin
+
+    Returns:
+        Raw diff as a string.
+
+    Raises:
+        DiffReadError if no input is available or input is invalid.
+    """
+
+    if from_string is not None:
+        if not isinstance(from_string, str):
+            raise DiffReadError("from_string must be a string")
+        return from_string.strip()
+
+    if from_file is not None:
+        try:
+            with open(from_file, "r", encoding="utf-8") as f:
+                return f.read().strip()
+        except OSError as e:
+            raise DiffReadError(f"Failed to read diff file: {e}") from e
+
+    if not sys.stdin.isatty():
+        data = sys.stdin.read().strip()
+        if data:
+            return data
+
+    raise DiffReadError(
+        "No diff input provided. Use from_string, from_file, or pipe via stdin."
+    )
+________________________________________
+Zašto je ovo “točno ovako” (kratko, ali važno)
+•	named-only arguments (*)
+o	sprječava greške tipa read_diff("foo")
+•	jasan priority
+o	nema implicitnog ponašanja
+•	custom exception
+o	kasnije je lako hendlati u CLI-ju
+•	.strip()
+o	makne noise na rubovima
+•	nema git komandi
+o	git je odgovornost adaptera / CLI-ja
+________________________________________
+Mini test (ručno, 5 min)
+U Python REPL-u:
+from core.diff.read_diff import read_diff
+
+print(read_diff(from_string="diff --git a/a.py b/a.py\n+print('hi')"))
+CLI test:
+git diff | python -c "from core.diff.read_diff import read_diff; print(read_diff())"
+Ako ispiše diff → BLOK 3 je gotov.
+________________________________________
+Checklist za BLOK 3
+•	read_diff.py postoji
+•	nema parsanja
+•	vraća uvijek str
+•	baca jasan error ako nema inputa
+•	radi sa stdin pipe-om
+✔️ Commit.
+________________________________________
+Sljedeći korak (BLOK 4)
+👉 parse_diff.py
+Tu ćemo:
+•	uzeti raw string
+•	splitati po diff --git
+•	mapirati u DiffFile / DiffHunk / Change
+To je najveći blok u FAZI 1, ali sad imaš sav temelj.
+Kad si spreman, samo reci: “idemo BLOK 4” 👌
+
+
+DI Ognjen Feist
+DevOps Engineer
+Software Requirements & Architecture   
+SAMSUNG SDI Battery Systems GmbH
+Industriezeile 2, 8401 Kalsdorf bei Graz
+
+Mobile: +43 664 8813 5729
+E-Mail: o.feist@samsung.com
+Website: www.samsungsdi.com
+________________________________________________________________
+Disclosure pursuant to §14 UGB:
+Samsung SDI Battery Systems GmbH based in Graz
+Commercial registry file number: FN 427124 z, court of jurisdiction: Landesgericht f. ZRS Graz
+This message is not legally binding upon SDI Battery Systems GmbH!
+
+
+blok 4
+“idemo BLOK 4” 👌
+Ajmo 😄
+BLOK 4 = srce FAZE 1. Tu diff prestaje biti tekst i postaje struktura.
+Idemo pragmatično, bez over-engineeringa. Cilj je 80% diffova, čisto i predvidljivo.
+________________________________________
+BLOK 4 — parse_diff.py
+Cilj bloka
+Imati funkciju:
+parse_diff(raw_diff: str) -> List[DiffFile]
+koja:
+•	uzima raw unified diff
+•	vraća kanonske dataclasses
+•	ignorira što ne razumije
+Bez filtera, bez AI-a, bez PR logike.
+________________________________________
+Mentalni model
+Parser je jednosmjerni stroj:
+raw diff (string)
+  ↓
+file blocks
+  ↓
+hunks
+  ↓
+line changes
+  ↓
+DiffFile[]
+Ako nešto ne znaš → preskoči, nemoj pucati.
+________________________________________
+File structure
+/core/diff
+  parse_diff.py
+________________________________________
+Implementacija: parse_diff.py
+Ovo je kompletan, radni parser za BLOK 4.
+# core/diff/parse_diff.py
+
+import re
+from typing import List
+
+from core.diff.types import DiffFile, DiffHunk, Change, ChangeType
+
+
+DIFF_FILE_HEADER = re.compile(r"^diff --git a/(.+?) b/(.+)$")
+HUNK_HEADER = re.compile(
+    r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@"
+)
+
+
+def parse_diff(raw_diff: str) -> List[DiffFile]:
+    if not raw_diff.strip():
+        return []
+
+    files: List[DiffFile] = []
+    current_file = None
+    current_hunks: List[DiffHunk] = []
+
+    current_hunk_lines = []
+    hunk_meta = None
+
+    for line in raw_diff.splitlines():
+        file_match = DIFF_FILE_HEADER.match(line)
+        if file_match:
+            if current_file:
+                if hunk_meta and current_hunk_lines:
+                    current_hunks.append(_build_hunk(hunk_meta, current_hunk_lines))
+                files.append(
+                    DiffFile(
+                        path=current_file,
+                        hunks=current_hunks,
+                    )
+                )
+
+            current_file = file_match.group(2)
+            current_hunks = []
+            current_hunk_lines = []
+            hunk_meta = None
+            continue
+
+        hunk_match = HUNK_HEADER.match(line)
+        if hunk_match:
+            if hunk_meta and current_hunk_lines:
+                current_hunks.append(_build_hunk(hunk_meta, current_hunk_lines))
+
+            hunk_meta = (
+                int(hunk_match.group(1)),
+                int(hunk_match.group(2) or 1),
+                int(hunk_match.group(3)),
+                int(hunk_match.group(4) or 1),
+            )
+            current_hunk_lines = []
+           continue
+
+        if hunk_meta:
+            if line.startswith("+"):
+                current_hunk_lines.append(
+                    Change(ChangeType.ADD, line[1:])
+                )
+            elif line.startswith("-"):
+                current_hunk_lines.append(
+                    Change(ChangeType.REMOVE, line[1:])
+                )
+            elif line.startswith(" "):
+                current_hunk_lines.append(
+                    Change(ChangeType.CONTEXT, line[1:])
+                )
+
+    if current_file:
+        if hunk_meta and current_hunk_lines:
+            current_hunks.append(_build_hunk(hunk_meta, current_hunk_lines))
+        files.append(
+            DiffFile(
+                path=current_file,
+                hunks=current_hunks,
+            )
+        )
+
+    return files
+
+
+def _build_hunk(meta, changes):
+    old_start, old_len, new_start, new_len = meta
+    return DiffHunk(
+        old_start=old_start,
+        old_length=old_len,
+        new_start=new_start,
+        new_length=new_len,
+        changes=changes,
+    )
+________________________________________
+Što parser namjerno ignorira
+•	index ...
+•	--- a/file
+•	+++ b/file
+•	\ No newline at end of file
+•	rename / binary markers
+➡️ To je feature, ne bug.
+________________________________________
+Brzi ručni test (10 min)
+Napraviti mali diff string:
+from core.diff.parse_diff import parse_diff
+
+diff = """
+diff --git a/test.py b/test.py
+@@ -1,1 +1,2 @@
+print("hello")
++print("world")
+"""
+
+files = parse_diff(diff)
+print(files)
+Očekuješ:
+•	1 file
+•	1 hunk
+•	2 changes (context + add)
+________________________________________
+Checklist za BLOK 4
+•	parse_diff vraća DiffFile[]
+•	više fajlova radi
+•	više hunks po fajlu radi
+•	prazni diff → []
+•	ne puca na noise
+Ako je sve ✔️ → commit.
+________________________________________
+Gdje smo sad
+Do sada imaš:
+•	✔️ jasnu spec (README)
+•	✔️ kanonske dataclasses
+•	✔️ input reader
+•	✔️ diff → struktura
+To znači:
+👉 FAZA 1 je praktički gotova
+Preostalo:
+•	BLOK 5 — filters.py
+•	BLOK 6 — manual end-to-end test
+Kad budeš spreman:
+“idemo BLOK 5”
+
+

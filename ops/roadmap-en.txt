@@ -1,0 +1,890 @@
+﻿me: I want to automate PRs so AI can review them.
+you: Mental model (big picture)
+Your goal is this:
+PR opened -> pipeline starts -> AI reads the diff -> AI writes the review -> comment appears in the PR
+Technically, you need to connect 4 things:
+1. Bitbucket event (PR created / updated)
+2. Code that collects the diff
+3. AI model that analyzes code
+4. Bot that comments on the PR
+________________________________________
+1) Where to start (minimal viable setup)
+Recommended start:
+Bitbucket Pipelines + OpenAI API (or another LLM)
+Why?
+- You already have Pipelines with git
+- You do not have to host a server
+- Everything happens "automatically"
+________________________________________
+2) Trigger: when AI review starts
+You have two options:
+Option A - Bitbucket Pipelines (most common)
+Pipeline starts:
+- when a PR is opened
+- when a PR is updated (new commit)
+In `bitbucket-pipelines.yml` define:
+- trigger: pull-request
+- script that:
+- pulls the diff
+- sends it to AI
+- sends comment back
+Pros: simplest
+Cons: less flexible
+________________________________________
+Option B - Webhook + your own service
+Bitbucket -> webhook -> your server -> AI -> Bitbucket API
+Pros: maximum control
+Cons: more work
+For the first attempt: Option A.
+________________________________________
+3) How AI "sees" the PR
+In the pipeline:
+1. checkout repo
+2. extract diff between:
+- target branch (e.g. main)
+- PR branch
+Examples of AI input:
+- `git diff origin/main...HEAD`
+- only changed files
+- only `.js`, `.py`, etc.
+Tip: do not send the whole repo, only the diff.
+________________________________________
+4) What the AI prompt should look like (critical)
+Do not just say:
+"Review this code"
+Better something like this (conceptually):
+You are a senior software engineer.
+Review the following pull request diff.
+Focus on:
+- bugs
+- security issues
+- performance problems
+- readability
+- breaking changes
+If everything looks fine, say so explicitly.
+Output markdown suitable for a PR comment.
+That is 80% of review quality.
+________________________________________
+5) Where AI writes the comment
+Bitbucket has a REST API:
+- endpoint for PR comments
+- you need:
+- repo
+- PR ID
+- auth token (bot user)
+Pipeline:
+- generates text
+- POST to Bitbucket API
+- comment appears as if bot wrote it
+________________________________________
+6) How it looks in practice (flow)
+PR opened
+   ↓
+Bitbucket Pipeline
+   ↓
+Extract git diff
+   ↓
+Send diff -> AI
+   ↓
+Receive review text
+   ↓
+POST comment to PR
+Done.
+________________________________________
+7) What must be added (lessons learned)
+Security
+- API key in repo variables
+- never in git
+Limits
+- large diff -> chunk it
+- or review per file
+Context
+- add:
+- coding standards
+- language / framework
+- "this is legacy code"
+Noise control
+- AI should:
+- not comment formatting
+- not repeat obvious things
+- not invent issues
+________________________________________
+8) Level-up ideas (after the basics work)
+- AI only comments if:
+- score > X
+- found critical issues
+- different prompts:
+- security review
+- performance review
+- PR label:
+- ai-reviewed
+- summary + inline comments
+- "approve / request changes" signal
+________________________________________
+9) Ready-made solutions (if you do not want to build everything)
+Tools exist (different quality):
+- PR AI reviewers (commercial)
+- Open-source GitHub-first (Bitbucket sometimes less supported)
+If you want full control and privacy -> DIY is better.
+________________________________________
+How to continue?
+I can:
+- prepare a concrete `bitbucket-pipelines.yml`
+- write the exact prompt for your stack
+- suggest model + price
+- or design an "AI reviewer rubric" (what it may / may not comment)
+Tell me:
+- which language / framework
+- how large the repo is
+- whether you want POC or "production-ready" setup
+
+
+me: what is the best way to build and launch this? (gh vs bitbucket)?
+you: TL;DR recommendation (if you want the direct answer)
+Build GitHub-first, but keep architecture platform-agnostic.
+Add Bitbucket later as a differentiator, not as the starting point.
+Now why and how.
+________________________________________
+1) GH vs Bitbucket - cold market reality
+GitHub
+Advantages
+- Huge developer base (default platform)
+- GitHub Actions + Apps = perfect ground for PR bots
+- Developers are used to installing bots
+- Marketplace = distribution + trust
+- Easier to get:
+- feedback
+- GitHub stars
+- open-source contributions
+- first users
+Disadvantages
+- Brutal competition
+- More AI noise
+________________________________________
+Bitbucket
+Advantages
+- Less competition
+- Enterprise / legacy teams
+- Jira / Atlassian ecosystem
+- People want AI there, but often do not have it
+Disadvantages
+- Weaker ecosystem
+- Smaller open-source audience
+- Harder onboarding
+- No Marketplace momentum like GitHub
+________________________________________
+Conclusion
+If you start from zero -> GitHub-first is the rational choice.
+If you target enterprise / monetization -> Bitbucket becomes gold later.
+________________________________________
+2) How to build: architecture that does not lock you in
+Golden rule
+Core logic != platform integration
+Suggested architecture
+/core
+  - diff parser
+  - prompt builder
+  - LLM adapter (OpenAI, Anthropic...)
+  - review rules engine
+
+/adapters
+  /github
+    - webhook handler
+    - PR comment publisher
+  /bitbucket
+    - webhook handler
+    - PR comment publisher
+
+/cli
+  - local testing
+  - CI usage
+
+/api (optional)
+  - SaaS endpoint
+This way:
+- review engine is written once
+- platforms are only thin adapters
+________________________________________
+3) How to start - recommended order
+Phase 1 - GitHub Action (open-source)
+Why?
+- Fastest time-to-value
+- Minimal infrastructure
+- Easy feedback loop
+Build:
+- GitHub Action
+- `.github/workflows/ai-review.yml`
+- use OpenAI / Claude API
+- comment on PR
+This is your PoC + marketing tool.
+________________________________________
+Phase 2 - GitHub App (semi-commercial)
+When you see adoption:
+- GitHub App
+- webhook -> your backend
+- centralized logic
+- billing (Stripe)
+This is the product.
+________________________________________
+Phase 3 - Bitbucket integration
+Now you are in a strong position:
+- you already have a stable core
+- Bitbucket adapter is "just" a new integration layer
+This is where pricing can be higher.
+________________________________________
+4) Open-source vs commercial - smart combination
+Best pattern (proven)
+Open-core model
+Part	Status
+Core PR review	open-source
+Advanced rules	paid
+Analytics	paid
+Team policies	paid
+Hosted service	paid
+People:
+- trust open source
+- pay for convenience
+________________________________________
+5) How to launch (not just "publish")
+GitHub-first distribution
+- README with GIF (critical)
+- 30-second demo
+- "Before / After PR"
+- GitHub Marketplace listing
+Early traction
+- Hacker News (Show HN)
+- Reddit (`r/programming`, `r/devops`)
+- LinkedIn (enterprise crowd)
+- Dev Twitter
+________________________________________
+6) What will differentiate you (this matters)
+"AI reviews code" - everyone says that
+What sells:
+- Signal > noise
+- "Comments only if confidence > X"
+- "No style comments"
+- "Security-only mode"
+- "Explain why, not what"
+People hate PR spam.
+________________________________________
+7) Monetization - realistic options
+GitHub
+- per repo / per seat
+- `$10-30 / dev / month`
+Bitbucket
+- team / org pricing
+- `$100-500 / month`
+- easier to get approval
+________________________________________
+8) My honest advice
+If you tell me:
+- solo or team
+- open-source credibility or revenue
+- targeting developers or management
+I can:
+- draw a concrete roadmap (`0 -> 1 -> 10k ARR`)
+- help design MVP feature set
+- help with naming + positioning
+But to answer clearly:
+Build GitHub-first.
+Launch as open-source.
+Monetize through a GitHub App.
+Add Bitbucket when you have traction.
+
+
+phase 1
+Here is an organizational plan for PHASE 1 / Day 1 - not code, but exactly how to structure work so you end the day with a passed test.
+________________________________________
+Day goal (clear and measurable)
+At the end of the day you can run:
+`git diff origin/main...HEAD | ai-review parse`
+and get:
+[
+  {
+    "path": "src/auth/login.ts",
+    "language": "ts",
+    "hunks": [
+      {
+        "oldStart": 12,
+        "newStart": 14,
+        "changes": [
+          { "type": "add", "content": "if (!user) return null" }
+        ]
+      }
+    ]
+  }
+]
+If this works -> Day 1 is done.
+________________________________________
+Mental split of the day (4 blocks)
+BLOCK 1 - Spec & boundaries (45-60 min)
+Do not write code immediately.
+Answer (in notes / README):
+- which diff formats you support:
+- yes unified diff (default git)
+- no rename / binary (for now)
+- what you do not parse:
+- context-only hunks
+- binary files
+- parser maximum responsibility:
+- read diff
+- convert to structure
+- nothing more
+This prevents scope creep.
+________________________________________
+BLOCK 2 - Structure `/core/diff` (30 min)
+Create minimal structure:
+/core
+  /diff
+    - readDiff.ts
+    - parseDiff.ts
+    - filters.ts
+    - types.ts
+In `types.ts` define the single canonical shape:
+- DiffFile
+- DiffHunk
+- Change
+This is the contract for the whole core.
+________________________________________
+BLOCK 3 - Layered implementation (2-3 h)
+1) `readDiff`
+Single responsibility:
+- stdin
+- or file
+- or raw string
+Output: string
+No parsing.
+________________________________________
+2) `parseDiff`
+Input: raw diff string
+Output: `DiffFile[]`
+Do:
+- split on `diff --git`
+- extract path
+- extract hunks (`@@ -x,y +a,b @@`)
+- lines:
+- `+` -> add
+- `-` -> remove
+- space -> context
+Do not optimize.
+Do not edge-case.
+Make it work for 80% of diffs.
+________________________________________
+3) `filters`
+Pipeline style:
+files
+  -> removeLockFiles
+  -> removeVendor
+  -> removeGenerated
+Hardcoded rules:
+- `package-lock.json`
+- `yarn.lock`
+- `vendor/`
+- `dist/`
+- `*.min.js`
+________________________________________
+BLOCK 4 - Manual test (30-45 min)
+Create:
+- one small fake diff (2 files)
+- one real PR diff from your own repo
+Test:
+- empty diff
+- lockfile-only diff
+- normal code diff
+Output must be:
+- valid JSON
+- stable shape
+If this passes -> commit.
+________________________________________
+Checklist (copy-paste friendly)
+At the end of the day there must be:
+- `DiffFile[]` type defined
+- parser works on real diff
+- lock / vendor ignored
+- CLI / script that prints JSON
+- README: "How diff parsing works"
+If any of this is missing -> day is not done.
+________________________________________
+What you intentionally do NOT do today
+- language detection (can come later)
+- perfect hunk ranges
+- rename detection
+- inline positions
+- performance tuning
+All of that is a Day 3+ problem.
+________________________________________
+How you know you succeeded
+If tomorrow you can:
+- take the same JSON
+- send it to prompt builder
+- without touching parser
+-> architecture is clean.
+________________________________________
+If you want, next I can:
+- help define exact TypeScript types
+- suggest ready-made library vs manual parser (tradeoff)
+- or break down Day 2 with the same style plan
+Just say it.
+
+
+block 2
+BLOCK 2 - structure `/core/diff` + Python dataclasses
+Perfect. Now we enter the clean, calm, deterministic part.
+BLOCK 2 = we set the skeleton that should not change later.
+I will go in this order:
+1. folder structure
+2. dataclasses (exact shape)
+3. short usage rules
+Still no parsing implementation.
+________________________________________
+1) Structure `/core/diff`
+Minimal but healthy:
+/core
+  /diff
+    __init__.py
+    types.py        # dataclasses (canonical model)
+    read_diff.py    # read raw diff (stdin/file/string)
+    parse_diff.py   # raw diff -> DiffFile[]
+    filters.py      # ignore rules (lock, vendor, generated)
+    README.md
+For BLOCK 2 today:
+- only implement `types.py`
+- others can be empty or have TODO comments
+________________________________________
+2) `types.py` - canonical model (most important file)
+This is the contract for the whole `/core`.
+If this is clean, everything else will fit naturally.
+
+# core/diff/types.py
+
+from dataclasses import dataclass
+from enum import Enum
+from typing import List, Optional
+
+
+class ChangeType(str, Enum):
+    ADD = "add"
+    REMOVE = "remove"
+    CONTEXT = "context"
+
+
+@dataclass(frozen=True)
+class Change:
+    """
+    Single line-level change inside a diff hunk.
+    """
+    type: ChangeType
+    content: str
+
+
+@dataclass(frozen=True)
+class DiffHunk:
+    """
+    A contiguous block of changes in a file.
+    """
+    old_start: int
+    old_length: int
+    new_start: int
+    new_length: int
+    changes: List[Change]
+
+
+@dataclass(frozen=True)
+class DiffFile:
+    """
+    All changes related to a single file.
+    """
+    path: str
+    hunks: List[DiffHunk]
+    language: Optional[str] = None
+
+Why this shape (short but important)
+- `frozen=True`
+- no mutation in the middle of pipeline
+- easier to debug
+- Enum for `ChangeType`
+- no magic strings
+- `language: Optional`
+- parser does not need to know language
+- can be added later (or in another layer)
+________________________________________
+3) What these types are and are NOT responsible for
+These types DO:
+- represent what changed
+- can be serialized to JSON
+- can be tested without git
+These types DO NOT:
+- know what a PR is
+- know line numbers in final file context
+- know if something is a bug
+- know how code comments are posted
+If you catch yourself adding:
+- severity
+- confidence
+- comment
+-> that is already another layer, not diff.
+________________________________________
+4) Mini sanity-check (without real code)
+If you can run this in Python REPL:
+from core.diff.types import DiffFile, DiffHunk, Change, ChangeType
+
+diff = DiffFile(
+    path="src/auth/login.py",
+    hunks=[
+        DiffHunk(
+            old_start=10,
+            old_length=2,
+            new_start=10,
+            new_length=4,
+            changes=[
+                Change(ChangeType.ADD, "if not user:"),
+                Change(ChangeType.ADD, "    return None"),
+            ],
+        )
+    ],
+    language="python",
+)
+and nothing smells wrong -> BLOCK 2 succeeded.
+________________________________________
+5) Checklist for BLOCK 2
+At the end of this step:
+- `/core/diff/types.py` exists
+- uses `@dataclass`
+- no business logic
+- README and types align
+- you can instantiate objects manually
+If all is done -> commit immediately.
+________________________________________
+Next step (BLOCK 3 - implementation)
+Logical continuation:
+`read_diff.py` (easiest part)
+- stdin
+- file path
+- raw string
+No parsing, no extra logic.
+If you want, I can:
+- provide exact skeleton for `read_diff.py`
+- or continue at this pace: block by block, mini sprint style
+Tell me how you want to continue.
+
+
+block 3
+BLOCK 3 = the cleanest possible unit of work. If you do it correctly, you should not touch it again.
+________________________________________
+BLOCK 3 - `read_diff.py`
+Block goal (one sentence)
+Have one way to get raw git diff string from:
+- stdin
+- file
+- already existing string
+No parsing. No logic. No extra intelligence.
+________________________________________
+Mental model (important)
+`read_diff.py` does not know:
+- what git is
+- what diff format is
+- what will happen with this string
+It only answers:
+"Where does the text come from?"
+________________________________________
+API target (before code)
+At the end, you want to do:
+from core.diff.read_diff import read_diff
+
+raw = read_diff()
+raw = read_diff(from_file="diff.txt")
+raw = read_diff(from_string=some_diff)
+Always returns `str`.
+If it cannot determine input -> raises a clear exception.
+________________________________________
+File structure
+/core/diff
+  read_diff.py
+________________________________________
+Implementation: `read_diff.py`
+This is finished final code for BLOCK 3.
+
+# core/diff/read_diff.py
+
+import sys
+from typing import Optional
+
+
+class DiffReadError(Exception):
+    """Raised when diff input cannot be read."""
+
+
+def read_diff(
+    *,
+    from_file: Optional[str] = None,
+    from_string: Optional[str] = None,
+) -> str:
+    """
+    Read a raw git diff from one of the supported sources.
+
+    Priority:
+    1. from_string
+    2. from_file
+    3. stdin
+
+    Returns:
+        Raw diff as a string.
+
+    Raises:
+        DiffReadError if no input is available or input is invalid.
+    """
+
+    if from_string is not None:
+        if not isinstance(from_string, str):
+            raise DiffReadError("from_string must be a string")
+        return from_string.strip()
+
+    if from_file is not None:
+        try:
+            with open(from_file, "r", encoding="utf-8") as f:
+                return f.read().strip()
+        except OSError as e:
+            raise DiffReadError(f"Failed to read diff file: {e}") from e
+
+    if not sys.stdin.isatty():
+        data = sys.stdin.read().strip()
+        if data:
+            return data
+
+    raise DiffReadError(
+        "No diff input provided. Use from_string, from_file, or pipe via stdin."
+    )
+________________________________________
+Why this is exactly like this (short but important)
+- named-only arguments (`*`)
+- prevents mistakes like `read_diff("foo")`
+- clear priority
+- no implicit behavior
+- custom exception
+- easier to handle in CLI later
+- `.strip()`
+- removes boundary noise
+- no git commands
+- git is responsibility of adapter / CLI
+________________________________________
+Mini test (manual, 5 min)
+In Python REPL:
+from core.diff.read_diff import read_diff
+
+print(read_diff(from_string="diff --git a/a.py b/a.py\n+print('hi')"))
+CLI test:
+`git diff | python -c "from core.diff.read_diff import read_diff; print(read_diff())"`
+If it prints diff -> BLOCK 3 is done.
+________________________________________
+Checklist for BLOCK 3
+- `read_diff.py` exists
+- no parsing
+- always returns `str`
+- raises clear error when input is missing
+- works with stdin pipe
+Commit.
+________________________________________
+Next step (BLOCK 4)
+`parse_diff.py`
+There we will:
+- take raw string
+- split by `diff --git`
+- map into `DiffFile / DiffHunk / Change`
+This is the biggest block in PHASE 1, but now you have the full foundation.
+When ready, just say: "let's do BLOCK 4"
+
+
+DI Ognjen Feist
+DevOps Engineer
+Software Requirements & Architecture
+SAMSUNG SDI Battery Systems GmbH
+Industriezeile 2, 8401 Kalsdorf bei Graz
+
+Mobile: +43 664 8813 5729
+E-Mail: o.feist@samsung.com
+Website: www.samsungsdi.com
+________________________________________________________________
+Disclosure pursuant to §14 UGB:
+Samsung SDI Battery Systems GmbH based in Graz
+Commercial registry file number: FN 427124 z, court of jurisdiction: Landesgericht f. ZRS Graz
+This message is not legally binding upon SDI Battery Systems GmbH!
+
+
+block 4
+"let's do BLOCK 4"
+Let's go.
+BLOCK 4 = the core of PHASE 1. Here diff stops being text and becomes structure.
+We go pragmatic, no over-engineering. Goal is 80% of diffs, clean and predictable.
+________________________________________
+BLOCK 4 - `parse_diff.py`
+Block goal
+Have function:
+`parse_diff(raw_diff: str) -> List[DiffFile]`
+that:
+- takes raw unified diff
+- returns canonical dataclasses
+- ignores what it does not understand
+No filters, no AI, no PR logic.
+________________________________________
+Mental model
+Parser is a one-way machine:
+raw diff (string)
+  ↓
+file blocks
+  ↓
+hunks
+  ↓
+line changes
+  ↓
+DiffFile[]
+If you do not know something -> skip it, do not crash.
+________________________________________
+File structure
+/core/diff
+  parse_diff.py
+________________________________________
+Implementation: `parse_diff.py`
+This is complete working parser code for BLOCK 4.
+
+# core/diff/parse_diff.py
+
+import re
+from typing import List
+
+from core.diff.types import DiffFile, DiffHunk, Change, ChangeType
+
+
+DIFF_FILE_HEADER = re.compile(r"^diff --git a/(.+?) b/(.+)$")
+HUNK_HEADER = re.compile(
+    r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@"
+)
+
+
+def parse_diff(raw_diff: str) -> List[DiffFile]:
+    if not raw_diff.strip():
+        return []
+
+    files: List[DiffFile] = []
+    current_file = None
+    current_hunks: List[DiffHunk] = []
+
+    current_hunk_lines = []
+    hunk_meta = None
+
+    for line in raw_diff.splitlines():
+        file_match = DIFF_FILE_HEADER.match(line)
+        if file_match:
+            if current_file:
+                if hunk_meta and current_hunk_lines:
+                    current_hunks.append(_build_hunk(hunk_meta, current_hunk_lines))
+                files.append(
+                    DiffFile(
+                        path=current_file,
+                        hunks=current_hunks,
+                    )
+                )
+
+            current_file = file_match.group(2)
+            current_hunks = []
+            current_hunk_lines = []
+            hunk_meta = None
+            continue
+
+        hunk_match = HUNK_HEADER.match(line)
+        if hunk_match:
+            if hunk_meta and current_hunk_lines:
+                current_hunks.append(_build_hunk(hunk_meta, current_hunk_lines))
+
+            hunk_meta = (
+                int(hunk_match.group(1)),
+                int(hunk_match.group(2) or 1),
+                int(hunk_match.group(3)),
+                int(hunk_match.group(4) or 1),
+            )
+            current_hunk_lines = []
+           continue
+
+        if hunk_meta:
+            if line.startswith("+"):
+                current_hunk_lines.append(
+                    Change(ChangeType.ADD, line[1:])
+                )
+            elif line.startswith("-"):
+                current_hunk_lines.append(
+                    Change(ChangeType.REMOVE, line[1:])
+                )
+            elif line.startswith(" "):
+                current_hunk_lines.append(
+                    Change(ChangeType.CONTEXT, line[1:])
+                )
+
+    if current_file:
+        if hunk_meta and current_hunk_lines:
+            current_hunks.append(_build_hunk(hunk_meta, current_hunk_lines))
+        files.append(
+            DiffFile(
+                path=current_file,
+                hunks=current_hunks,
+            )
+        )
+
+    return files
+
+
+def _build_hunk(meta, changes):
+    old_start, old_len, new_start, new_len = meta
+    return DiffHunk(
+        old_start=old_start,
+        old_length=old_len,
+        new_start=new_start,
+        new_length=new_len,
+        changes=changes,
+    )
+________________________________________
+What parser intentionally ignores
+- `index ...`
+- `--- a/file`
+- `+++ b/file`
+- `\ No newline at end of file`
+- rename / binary markers
+That is a feature, not a bug.
+________________________________________
+Quick manual test (10 min)
+Create a small diff string:
+from core.diff.parse_diff import parse_diff
+
+diff = """
+diff --git a/test.py b/test.py
+@@ -1,1 +1,2 @@
+print("hello")
++print("world")
+"""
+
+files = parse_diff(diff)
+print(files)
+Expected:
+- 1 file
+- 1 hunk
+- 2 changes (context + add)
+________________________________________
+Checklist for BLOCK 4
+- `parse_diff` returns `DiffFile[]`
+- multiple files work
+- multiple hunks per file work
+- empty diff -> `[]`
+- does not crash on noise
+If all is done -> commit.
+________________________________________
+Where we are now
+So far you have:
+- clear spec (README)
+- canonical dataclasses
+- input reader
+- diff -> structure
+That means:
+PHASE 1 is practically finished
+Remaining:
+- BLOCK 5 - `filters.py`
+- BLOCK 6 - manual end-to-end test
+When ready:
+"let's do BLOCK 5"
