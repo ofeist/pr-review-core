@@ -118,9 +118,10 @@ class ChunkMergeTest(unittest.TestCase):
         ]
 
         output = run_review(files, adapter_name="fake", max_changes_per_chunk=2)
-        self.assertIn("Reviewed 3 chunk(s).", output)
+        self.assertIn("Reviewed 1 chunk(s).", output)
         self.assertIn("### Findings", output)
 
 
 if __name__ == "__main__":
     unittest.main()
+

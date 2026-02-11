@@ -1,6 +1,7 @@
 ﻿"""Simple review pipeline for local execution and tests."""
 
-from typing import Dict, List
+import logging
+from typing import Dict, List, Optional
 
 from core.diff.types import DiffFile
 from core.review.adapters.fake import FakeModelAdapter
@@ -10,6 +11,8 @@ from core.review.model_adapter import ModelAdapter
 from core.review.noise_filter import filter_review_markdown
 from core.review.output_normalizer import normalize_review_markdown
 from core.review.prompt_builder import build_review_prompt
+
+LOGGER = logging.getLogger(__name__)
 
 
 def _adapter_registry() -> Dict[str, ModelAdapter]:
@@ -42,23 +45,71 @@ def run_review(
     base_ref: str = "",
     head_ref: str = "",
     max_changes_per_chunk: int = 200,
+    adapter_override: Optional[ModelAdapter] = None,
 ) -> str:
-    """Run prompt build + adapter generation end-to-end."""
+    """Run review generation with full-diff then fallback orchestration."""
 
-    adapter = get_adapter(adapter_name)
-    chunks = chunk_diff_files(files, max_changes_per_chunk=max_changes_per_chunk)
+    adapter = adapter_override if adapter_override is not None else get_adapter(adapter_name)
 
-    chunk_outputs: List[str] = []
-    for idx, chunk in enumerate(chunks, start=1):
-        prompt = build_review_prompt(
-            chunk,
+    # Step 1: try single full-diff review first.
+    try:
+        full_output = _review_one_payload(
+            files,
+            adapter=adapter,
             repository=repository,
             base_ref=base_ref,
             head_ref=head_ref,
         )
-        raw_output = adapter.generate_review(prompt)
-        normalized = normalize_review_markdown(raw_output)
-        filtered = filter_review_markdown(normalized)
-        chunk_outputs.append(filtered)
+        return merge_chunk_markdowns([full_output])
+    except Exception as exc:
+        LOGGER.warning("Full-diff review failed, falling back to per-file mode: %s", exc)
 
-    return merge_chunk_markdowns(chunk_outputs)
+    # Step 2: fallback to per-file reviews, with chunking within each file if needed.
+    fallback_outputs: List[str] = []
+    for file_obj in files:
+        file_chunks = chunk_diff_files([file_obj], max_changes_per_chunk=max_changes_per_chunk)
+        for chunk in file_chunks:
+            try:
+                chunk_output = _review_one_payload(
+                    chunk,
+                    adapter=adapter,
+                    repository=repository,
+                    base_ref=base_ref,
+                    head_ref=head_ref,
+                )
+                fallback_outputs.append(chunk_output)
+            except Exception as exc:
+                LOGGER.warning("Fallback chunk review failed for file '%s': %s", file_obj.path, exc)
+
+    if fallback_outputs:
+        return merge_chunk_markdowns(fallback_outputs)
+
+    # Step 3: controlled final fallback if everything failed.
+    return (
+        "## AI Review\n"
+        "\n"
+        "### Summary\n"
+        "Review could not be generated from model output.\n"
+        "\n"
+        "### Findings\n"
+        "- No issues found.\n"
+    )
+
+
+def _review_one_payload(
+    files: List[DiffFile],
+    *,
+    adapter: ModelAdapter,
+    repository: str,
+    base_ref: str,
+    head_ref: str,
+) -> str:
+    prompt = build_review_prompt(
+        files,
+        repository=repository,
+        base_ref=base_ref,
+        head_ref=head_ref,
+    )
+    raw_output = adapter.generate_review(prompt)
+    normalized = normalize_review_markdown(raw_output)
+    return filter_review_markdown(normalized)
