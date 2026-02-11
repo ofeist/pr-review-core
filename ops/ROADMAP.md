@@ -1,4 +1,4 @@
-# Project Roadmap
+﻿# Project Roadmap
 
 ## Vision
 Build a platform-agnostic AI PR review engine that starts GitHub-first for fastest adoption, then adds Bitbucket integration for enterprise differentiation.
@@ -42,7 +42,7 @@ Exit criteria:
 - Stable structured output for representative diffs.
 - Reproducible tests for parsing + filtering.
 
-### Phase 2 - Review Core (Next)
+### Phase 2 - Review Core
 Goal: convert parsed diff into high-signal AI review text.
 - Implement prompt builder with strict review rubric:
 - Bugs
@@ -112,3 +112,4 @@ Exit criteria:
 2. Implement prompt builder + review rubric module in `core`.
 3. Add initial LLM adapter and local CLI command for offline review generation.
 4. Create GitHub Action MVP to post PR comments from generated markdown.
+
