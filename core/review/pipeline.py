@@ -45,6 +45,7 @@ def run_review(
     base_ref: str = "",
     head_ref: str = "",
     max_changes_per_chunk: int = 200,
+    fallback_enabled: bool = True,
     adapter_override: Optional[ModelAdapter] = None,
 ) -> str:
     """Run review generation with full-diff then fallback orchestration."""
@@ -62,6 +63,8 @@ def run_review(
         )
         return merge_chunk_markdowns([full_output])
     except Exception as exc:
+        if not fallback_enabled:
+            raise RuntimeError("Full-diff review failed and fallback mode is disabled.") from exc
         LOGGER.warning("Full-diff review failed, falling back to per-file mode: %s", exc)
 
     # Step 2: fallback to per-file reviews, with chunking within each file if needed.
