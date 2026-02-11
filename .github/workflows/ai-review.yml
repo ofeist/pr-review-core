@@ -15,7 +15,7 @@ permissions:
 jobs:
   generate-review:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
 
     steps:
       - name: Checkout
@@ -42,6 +42,9 @@ jobs:
           echo "Adapter mode: $mode"
 
       - name: Extract PR diff
+        id: extract
+        timeout-minutes: 3
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -54,6 +57,9 @@ jobs:
 
       - name: Generate review markdown
         id: review
+        timeout-minutes: 6
+        continue-on-error: true
+        if: ${{ steps.extract.outcome == 'success' }}
         shell: bash
         env:
           ADAPTER_MODE: ${{ steps.adapter.outputs.adapter }}
@@ -82,6 +88,28 @@ EOF
             --adapter "$ADAPTER_MODE" \
             > artifacts/review.md
 
+      - name: Ensure controlled fallback markdown
+        if: ${{ steps.extract.outcome != 'success' || steps.review.outcome == 'failure' || steps.review.outcome == 'cancelled' || !hashFiles('artifacts/review.md') }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          reason="review_generation_failed"
+          if [[ "${{ steps.extract.outcome }}" != "success" ]]; then
+            reason="diff_extraction_failed"
+          elif [[ "${{ steps.review.outcome }}" == "cancelled" ]]; then
+            reason="review_timed_out_or_cancelled"
+          fi
+
+          cat > artifacts/review.md <<EOF
+## AI Review
+
+### Summary
+Review could not be completed in this run (${reason}).
+
+### Findings
+- No issues found.
+EOF
+
       - name: Publish PR comment (upsert)
         uses: actions/github-script@v7
         with:
@@ -93,6 +121,8 @@ EOF
               marker,
               '## AI PR Review',
               `- Adapter mode: ${{ steps.adapter.outputs.adapter }}`,
+              `- Extract step: ${{ steps.extract.outcome }}`,
+              `- Review step: ${{ steps.review.outcome || 'skipped' }}`,
               '',
               review.trim(),
             ].join('\n');
