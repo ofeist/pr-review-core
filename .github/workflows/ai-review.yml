@@ -55,11 +55,41 @@ jobs:
             --pr-number "${{ github.event.pull_request.number }}" \
             --output artifacts/pr.diff
 
+      - name: Check actionable diff
+        id: actionable
+        if: ${{ steps.extract.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat artifacts/pr.diff | python -m core.diff.cli > artifacts/parsed.json
+          if grep -Eq '^\s*\[\s*\]\s*$' artifacts/parsed.json; then
+            echo "actionable=false" >> "$GITHUB_OUTPUT"
+            echo "No actionable changes after diff parsing/filtering."
+          else
+            echo "actionable=true" >> "$GITHUB_OUTPUT"
+            echo "Actionable changes detected."
+          fi
+
+      - name: Write no-actionable markdown
+        if: ${{ steps.extract.outcome == 'success' && steps.actionable.outputs.actionable == 'false' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > artifacts/review.md <<'EOF'
+## AI Review
+
+### Summary
+No actionable code changes detected in this PR diff.
+
+### Findings
+- No issues found.
+EOF
+
       - name: Generate review markdown
         id: review
         timeout-minutes: 6
         continue-on-error: true
-        if: ${{ steps.extract.outcome == 'success' }}
+        if: ${{ steps.extract.outcome == 'success' && steps.actionable.outputs.actionable == 'true' }}
         shell: bash
         env:
           ADAPTER_MODE: ${{ steps.adapter.outputs.adapter }}
@@ -110,6 +140,45 @@ Review could not be completed in this run (${reason}).
 - No issues found.
 EOF
 
+      - name: Guard comment size
+        shell: bash
+        env:
+          AI_REVIEW_MAX_COMMENT_CHARS: ${{ vars.AI_REVIEW_MAX_COMMENT_CHARS }}
+        run: |
+          set -euo pipefail
+          max="${AI_REVIEW_MAX_COMMENT_CHARS:-60000}"
+          if ! [[ "$max" =~ ^[0-9]+$ ]] || [[ "$max" -le 1000 ]]; then
+            echo "Invalid AI_REVIEW_MAX_COMMENT_CHARS ('$max'), defaulting to 60000" >&2
+            max="60000"
+          fi
+          export MAX_CHARS="$max"
+          python - <<'PY'
+from pathlib import Path
+import os
+
+path = Path("artifacts/review.md")
+text = path.read_text(encoding="utf-8")
+max_chars = int(os.environ["MAX_CHARS"])
+
+if len(text) <= max_chars:
+    raise SystemExit(0)
+
+preview_budget = max(500, max_chars - 250)
+preview = text[:preview_budget].rstrip()
+truncated = (
+    "## AI Review\n\n"
+    "### Summary\n"
+    f"Review output was truncated to fit comment size limits ({max_chars} chars).\n\n"
+    "### Findings\n"
+    "- Full output is available in workflow artifact `ai-review-markdown`.\n"
+    "- Preview:\n"
+    "```text\n"
+    f"{preview}\n"
+    "```\n"
+)
+path.write_text(truncated, encoding="utf-8")
+PY
+
       - name: Publish PR comment (upsert)
         uses: actions/github-script@v7
         with:
@@ -122,6 +191,7 @@ EOF
               '## AI PR Review',
               `- Adapter mode: ${{ steps.adapter.outputs.adapter }}`,
               `- Extract step: ${{ steps.extract.outcome }}`,
+              `- Actionable diff: ${{ steps.actionable.outputs.actionable || 'unknown' }}`,
               `- Review step: ${{ steps.review.outcome || 'skipped' }}`,
               '',
               review.trim(),
