@@ -78,15 +78,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat > artifacts/review.md <<'EOF'
-          ## AI Review
-
-          ### Summary
-          No actionable code changes detected in this PR diff.
-
-          ### Findings
-          - No issues found.
-          EOF
+          printf '%s\n' \
+            '## AI Review' \
+            '' \
+            '### Summary' \
+            'No actionable code changes detected in this PR diff.' \
+            '' \
+            '### Findings' \
+            '- No issues found.' \
+            > artifacts/review.md
 
       - name: Generate review markdown
         id: review
@@ -102,15 +102,15 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$ADAPTER_MODE" == "openai" && -z "${OPENAI_API_KEY:-}" ]]; then
-            cat > artifacts/review.md <<'EOF'
-            ## AI Review
-
-            ### Summary
-            OpenAI mode is enabled but OPENAI_API_KEY is missing.
-
-            ### Findings
-            - No issues found.
-            EOF
+            printf '%s\n' \
+              '## AI Review' \
+              '' \
+              '### Summary' \
+              'OpenAI mode is enabled but OPENAI_API_KEY is missing.' \
+              '' \
+              '### Findings' \
+              '- No issues found.' \
+              > artifacts/review.md
             echo "Missing OPENAI_API_KEY for openai mode; wrote controlled fallback output." >&2
             exit 0
           fi
@@ -133,15 +133,15 @@ jobs:
             reason="review_timed_out_or_cancelled"
           fi
 
-          cat > artifacts/review.md <<EOF
-          ## AI Review
-
-          ### Summary
-          Review could not be completed in this run (${reason}).
-
-          ### Findings
-          - No issues found.
-          EOF
+          printf '%s\n' \
+            '## AI Review' \
+            '' \
+            '### Summary' \
+            "Review could not be completed in this run (${reason})." \
+            '' \
+            '### Findings' \
+            '- No issues found.' \
+            > artifacts/review.md
 
       - name: Guard comment size
         shell: bash
@@ -154,33 +154,32 @@ jobs:
             echo "Invalid AI_REVIEW_MAX_COMMENT_CHARS ('$max'), defaulting to 60000" >&2
             max="60000"
           fi
-          export MAX_CHARS="$max"
-          python - <<'PY'
-          from pathlib import Path
-          import os
 
-          path = Path("artifacts/review.md")
-          text = path.read_text(encoding="utf-8")
-          max_chars = int(os.environ["MAX_CHARS"])
+          current_chars=$(wc -m < artifacts/review.md | tr -d '[:space:]')
+          if [[ "$current_chars" -le "$max" ]]; then
+            exit 0
+          fi
 
-          if len(text) <= max_chars:
-              raise SystemExit(0)
+          preview_budget=$((max - 250))
+          if [[ "$preview_budget" -lt 500 ]]; then
+            preview_budget=500
+          fi
 
-          preview_budget = max(500, max_chars - 250)
-          preview = text[:preview_budget].rstrip()
-          truncated = (
-              "## AI Review\n\n"
-              "### Summary\n"
-              f"Review output was truncated to fit comment size limits ({max_chars} chars).\n\n"
-              "### Findings\n"
-              "- Full output is available in workflow artifact `ai-review-markdown`.\n"
-              "- Preview:\n"
-              "```text\n"
-              f"{preview}\n"
-              "```\n"
-          )
-          path.write_text(truncated, encoding="utf-8")
-          PY
+          preview=$(head -c "$preview_budget" artifacts/review.md)
+
+          {
+            echo "## AI Review"
+            echo
+            echo "### Summary"
+            echo "Review output was truncated to fit comment size limits (${max} chars)."
+            echo
+            echo "### Findings"
+            echo "- Full output is available in workflow artifact \\`ai-review-markdown\\`."
+            echo "- Preview:"
+            echo '\`\`\`text'
+            printf '%s\n' "$preview"
+            echo '\`\`\`'
+          } > artifacts/review.md
 
       - name: Publish PR comment (upsert)
         uses: actions/github-script@v7
