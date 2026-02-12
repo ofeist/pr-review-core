@@ -21,7 +21,7 @@ Break **Phase 4 - Packaging and Distribution Readiness** into small, end-to-end 
 - Slice 7: done
 - Evidence: added `ops/compatibility-policy.md` with explicit CLI/markdown compatibility expectations and warn->grace->removal deprecation rules, plus regression tests in `tests/review/test_contract_compatibility.py` for required flags and heading order.
 - Slice 8: done
-- Evidence: added `ops/phase-4-exit-validation.md` checklist with installed-package E2E validation results (fake adapter path), recorded OpenAI validation status/constraints, and documented Phase 5 handoff notes.
+- Evidence: added `ops/done/phase-4-exit-validation.md` checklist with installed-package E2E validation results (fake adapter path), recorded OpenAI validation status/constraints, and documented Phase 5 handoff notes.
 
 ## Phase 4 Goal (from roadmap)
 Make the project reusable as a versioned Python package with a stable CLI/output contract, release checks, and practical integration guidance.

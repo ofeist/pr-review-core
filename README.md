@@ -12,12 +12,12 @@ Roadmap: `ops/ROADMAP.md`
 
 ## Current Scope
 Implemented in this repository:
-- Phase 1: diff parsing foundation (`core/diff`)
-- Phase 2: review core (`core/review`)
+- Phase 1: diff parsing foundation (`src/core/diff`)
+- Phase 2: review core (`src/core/review`)
 - Phase 3 MVP: GitHub Actions PR workflow with comment upsert
+- Phase 4: packaging and distribution readiness completed
 
 Out of scope right now:
-- Packaging/distribution work in progress (Phase 4)
 - GitHub App backend (Phase 5)
 - Billing, tenancy, hosted control plane
 - Bitbucket adapter (Phase 6)
@@ -32,12 +32,12 @@ Out of scope right now:
 - `adapters/github/scripts/extract_pr_diff.py`: robust PR diff extraction script
 - `CHANGELOG.md`: release notes and user-visible changes
 - `ops/ROADMAP.md`: project roadmap
-- `ops/phase-4-thin-slices.md`: Phase 4 execution slices
+- `ops/done/phase-4-thin-slices.md`: Phase 4 execution slices (completed)
 - `ops/phase-5-thin-slices.md`: Phase 5 execution slices
 - `ops/versioning-policy.md`: version bump and compatibility policy
 - `ops/compatibility-policy.md`: CLI/markdown compatibility and deprecation rules
 - `ops/release-checklist.md`: release/tag checklist
-- `ops/phase-4-exit-validation.md`: Phase 4 readiness validation and handoff notes
+- `ops/done/phase-4-exit-validation.md`: Phase 4 readiness validation and handoff notes
 - `ops/consumer-integration.md`: consumer quickstart for GitHub/Bitbucket integration
 - `ops/IMPLEMENTATION-GUARDRAILS.md`: implementation boundaries and contract guardrails
 - `ops/done/phase-3-validation-checklist.md`: Phase 3 manual acceptance checklist
