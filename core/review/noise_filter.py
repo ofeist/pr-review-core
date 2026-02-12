@@ -63,6 +63,9 @@ PRAISE_KEYWORDS = {
     "helpful robustness improvement",
     "expected behavior",
     "helpful",
+    "backward compatible",
+    "non-breaking",
+    "non breaking",
 }
 
 META_KEYWORDS = {
@@ -270,6 +273,10 @@ def _is_non_actionable_affirmation(text: str) -> bool:
     if lowered.startswith("there are no ") and _contains_risk_signal(text):
         return True
     if "no regressions" in lowered or "no breaking changes" in lowered:
+        return True
+    if "non-breaking and backward compatible" in lowered:
+        return True
+    if "non breaking and backward compatible" in lowered:
         return True
     if lowered.startswith("the fallback in") and ("improvement" in lowered or "helpful" in lowered):
         return True

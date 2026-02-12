@@ -120,6 +120,19 @@ class NoiseFilterTest(unittest.TestCase):
         self.assertNotIn("helpful robustness improvement", output)
         self.assertNotIn("There are no security, performance, or breaking changes", output)
 
+    def test_filters_backward_compatibility_affirmation(self) -> None:
+        raw = (
+            "## AI Review\n\n"
+            "### Summary\n"
+            "Reviewed 1 chunk(s). Kept 1 unique finding(s).\n\n"
+            "### Findings\n"
+            "- The changes are non-breaking and backward compatible, only enhancing filtering and normalization behavior.\n"
+        )
+
+        output = filter_review_markdown(raw)
+        self.assertIn("- No issues found.", output)
+        self.assertNotIn("non-breaking and backward compatible", output)
+
 
 if __name__ == "__main__":
     unittest.main()
