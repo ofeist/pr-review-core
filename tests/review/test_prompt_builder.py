@@ -60,6 +60,16 @@ class PromptBuilderTest(unittest.TestCase):
         self.assertIn("No issues found.", prompt)
         self.assertIn("(no changed files)", prompt)
 
+    def test_prompt_includes_pr_metadata_when_provided(self) -> None:
+        prompt = build_review_prompt(
+            [],
+            repository="acme/repo",
+            pr_title="Tighten review output quality",
+            pr_body="Reduce noisy non-actionable findings in final comment.",
+        )
+        self.assertIn("PR title: Tighten review output quality", prompt)
+        self.assertIn("PR description: Reduce noisy non-actionable findings in final comment.", prompt)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -94,11 +94,26 @@ def build_pr_summary(files: List[DiffFile], max_files: int = 3) -> str:
     return summary
 
 
+def build_intent_summary(pr_title: str = "", pr_body: str = "", max_chars: int = 240) -> str:
+    """Build deterministic one-line intent summary from PR metadata."""
+
+    title = _clean_intent_text(pr_title)
+    body = _clean_intent_text(pr_body)
+    if not title and not body:
+        return "Intent not provided."
+
+    if title:
+        return _truncate(_first_sentence(title), max_chars)
+
+    return _truncate(_first_sentence(body), max_chars)
+
+
 def merge_chunk_markdowns(
     markdowns: List[str],
     *,
     change_summary_lines: Optional[List[str]] = None,
     summary_prefix: Optional[str] = None,
+    intent_summary: Optional[str] = None,
 ) -> str:
     """Merge chunk-level markdown results into one deterministic review."""
 
@@ -125,6 +140,9 @@ def merge_chunk_markdowns(
         "",
         "### Summary",
         summary,
+        "",
+        "### Intent",
+        (intent_summary or "Intent not provided."),
         "",
         "### Change Summary",
     ]
@@ -247,3 +265,63 @@ def _dedupe_key(text: str) -> str:
     lowered = re.sub(r"[^a-z0-9\s]", "", lowered)
     lowered = re.sub(r"\s+", " ", lowered)
     return lowered
+
+
+def _normalize_ws(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _truncate(text: str, max_chars: int) -> str:
+    if len(text) <= max_chars:
+        return text
+    if max_chars <= 3:
+        return "." * max_chars
+    return text[: max_chars - 3].rstrip() + "..."
+
+
+def _clean_intent_text(text: str) -> str:
+    if not text:
+        return ""
+
+    cleaned = text.replace("\r\n", "\n").replace("\r", "\n")
+    cleaned = re.sub(r"```.*?```", " ", cleaned, flags=re.S)
+    cleaned = cleaned.replace("`", " ")
+
+    lines: List[str] = []
+    for raw_line in cleaned.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line.startswith("#"):
+            continue
+        line = re.sub(r"^[-*+]\s+", "", line)
+        line = re.sub(r"^\d+\.\s+", "", line)
+        line = line.strip(":- ")
+        if not line:
+            continue
+        if line.lower() in {"what was implemented", "files changed", "validation"}:
+            continue
+        lines.append(line)
+
+    compact = _normalize_ws(" ".join(lines))
+    compact = re.sub(
+        r"^(what was implemented|implementation summary|summary)\s*[:\-]+\s*",
+        "",
+        compact,
+        flags=re.I,
+    )
+    # If title/body leaked list-style continuation like ": - item", keep only the lead clause.
+    compact = re.sub(r":\s*-\s+.*$", "", compact)
+    compact = re.sub(r"\s*-\s*$", "", compact)
+    compact = re.sub(r"\s*[:\-]\s*$", "", compact)
+    compact = _normalize_ws(compact)
+    return compact
+
+
+def _first_sentence(text: str) -> str:
+    if not text:
+        return ""
+    match = re.search(r"^(.{1,220}?[.!?])(?:\s|$)", text)
+    if match:
+        return match.group(1).strip()
+    return text

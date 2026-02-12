@@ -25,6 +25,8 @@ def build_review_prompt(
     repository: str = "",
     base_ref: str = "",
     head_ref: str = "",
+    pr_title: str = "",
+    pr_body: str = "",
 ) -> str:
     """Build deterministic prompt text from parsed diff files."""
 
@@ -37,7 +39,13 @@ def build_review_prompt(
         lines.append(f"Repository: {repository}")
     if base_ref or head_ref:
         lines.append(f"Comparison: {base_ref or '?'} -> {head_ref or '?'}")
+    if pr_title.strip():
+        lines.append(f"PR title: {pr_title.strip()}")
+    if pr_body.strip():
+        lines.append(f"PR description: {pr_body.strip()}")
     if repository or base_ref or head_ref:
+        lines.append("")
+    elif pr_title.strip() or pr_body.strip():
         lines.append("")
 
     lines.append("Review rubric:")
@@ -56,6 +64,7 @@ def build_review_prompt(
     lines.append("  - `## AI Review`")
     lines.append("  - `### Summary`")
     lines.append("  - `### Findings`")
+    lines.append("- In `### Summary`, explain what this PR is changing in 1-2 sentences.")
     lines.append("- Under `### Findings`, output one finding per markdown bullet (`- ...`).")
     lines.append("- Do not output plain-text finding lines without bullet markers.")
     lines.append("- If no issues are found, include exactly one bullet: `- No issues found.`")

@@ -106,6 +106,8 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
           OPENAI_TIMEOUT_SECONDS: ${{ vars.OPENAI_TIMEOUT_SECONDS }}
+          PR_TITLE: ${{ github.event.pull_request.title || '' }}
+          PR_BODY: ${{ github.event.pull_request.body || '' }}
         run: |
           set -euo pipefail
           if [[ "$ADAPTER_MODE" == "openai" && -z "${OPENAI_API_KEY:-}" ]]; then
@@ -126,6 +128,8 @@ jobs:
             --input-format raw \
             --from-file artifacts/pr.diff \
             --adapter "$ADAPTER_MODE" \
+            --pr-title "${PR_TITLE}" \
+            --pr-body "${PR_BODY}" \
             > artifacts/review.md
 
       - name: Ensure controlled fallback markdown

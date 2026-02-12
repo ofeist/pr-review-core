@@ -50,6 +50,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Head ref shown in prompt context.",
     )
     parser.add_argument(
+        "--pr-title",
+        default="",
+        help="Pull request title shown in prompt and output intent.",
+    )
+    parser.add_argument(
+        "--pr-body",
+        default="",
+        help="Pull request description shown in prompt and output intent.",
+    )
+    parser.add_argument(
         "--max-changes-per-chunk",
         type=int,
         default=200,
@@ -101,6 +111,8 @@ def main(argv: List[str] | None = None) -> int:
             repository=args.repository,
             base_ref=args.base_ref,
             head_ref=args.head_ref,
+            pr_title=args.pr_title,
+            pr_body=args.pr_body,
             max_changes_per_chunk=args.max_changes_per_chunk,
             fallback_enabled=(args.fallback_mode == "on"),
         )

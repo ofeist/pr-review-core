@@ -1,7 +1,7 @@
 ﻿import unittest
 
 from core.diff.types import Change, ChangeType, DiffFile, DiffHunk
-from core.review.chunking import chunk_diff_files, merge_chunk_markdowns
+from core.review.chunking import build_intent_summary, chunk_diff_files, merge_chunk_markdowns
 from core.review.pipeline import run_review
 
 
@@ -93,6 +93,8 @@ class ChunkMergeTest(unittest.TestCase):
 
         self.assertEqual(merged_first, merged_second)
         self.assertIn("Kept 2 unique finding(s).", merged_first)
+        self.assertIn("### Intent", merged_first)
+        self.assertIn("Intent not provided.", merged_first)
         self.assertEqual(merged_first.count("Missing auth guard before token use"), 1)
 
     def test_run_review_uses_chunking_and_merges(self) -> None:
@@ -120,6 +122,43 @@ class ChunkMergeTest(unittest.TestCase):
         output = run_review(files, adapter_name="fake", max_changes_per_chunk=2)
         self.assertIn("Reviewed 1 chunk(s).", output)
         self.assertIn("### Findings", output)
+
+
+class IntentSummaryTest(unittest.TestCase):
+    def test_prefers_clean_title_for_intent(self) -> None:
+        intent = build_intent_summary(
+            pr_title="Add PR intent section to AI review output.",
+            pr_body="- details\n- more details\n",
+        )
+        self.assertEqual(intent, "Add PR intent section to AI review output.")
+
+    def test_uses_clean_body_when_title_missing(self) -> None:
+        intent = build_intent_summary(
+            pr_title="",
+            pr_body=(
+                "### What was implemented\n"
+                "- Added PR metadata flow end-to-end.\n"
+                "- Added Intent section.\n"
+            ),
+        )
+        self.assertEqual(intent, "Added PR metadata flow end-to-end.")
+
+    def test_fallback_when_both_missing(self) -> None:
+        self.assertEqual(build_intent_summary("", ""), "Intent not provided.")
+
+    def test_strips_what_was_implemented_heading_prefix(self) -> None:
+        intent = build_intent_summary(
+            pr_title="What was implemented - Added PR metadata flow end-to-end: - ",
+            pr_body="",
+        )
+        self.assertEqual(intent, "Added PR metadata flow end-to-end")
+
+    def test_strips_heading_list_spillover_tail(self) -> None:
+        intent = build_intent_summary(
+            pr_title="Added PR metadata flow end-to-end: - workflow -> CLI -> pipeline -> prompt",
+            pr_body="",
+        )
+        self.assertEqual(intent, "Added PR metadata flow end-to-end")
 
 
 if __name__ == "__main__":
