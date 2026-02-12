@@ -36,6 +36,7 @@ Out of scope right now:
 - `ops/phase-5-thin-slices.md`: Phase 5 execution slices
 - `ops/versioning-policy.md`: version bump and compatibility policy
 - `ops/release-checklist.md`: release/tag checklist
+- `ops/consumer-integration.md`: consumer quickstart for GitHub/Bitbucket integration
 - `ops/IMPLEMENTATION-GUARDRAILS.md`: implementation boundaries and contract guardrails
 - `ops/done/phase-3-validation-checklist.md`: Phase 3 manual acceptance checklist
 
@@ -48,6 +49,21 @@ Out of scope right now:
 Notes:
 - Base install is sufficient for `--adapter fake`.
 - `--adapter openai` requires both `OPENAI_API_KEY` and the `openai` extra.
+
+## Consumer Quickstart
+Install in a consumer repository:
+
+```bash
+python -m pip install "git+https://github.com/ofeist/pr-review-core.git@v0.1.0"
+```
+
+Run on a diff file:
+
+```bash
+python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapter fake
+```
+
+For full GitHub and Bitbucket interim integration patterns, see `ops/consumer-integration.md`.
 
 ## Local Usage
 Raw diff review:

@@ -16,7 +16,8 @@ Break **Phase 4 - Packaging and Distribution Readiness** into small, end-to-end 
 - Evidence: added `.github/workflows/package-smoke.yml` (PR/tag/manual), validates build/install and fixture-driven CLI smoke output shape, uploads `dist/*` and smoke markdown artifacts, and local smoke/tests passed (`make smoke-package`, review suite `61 tests`).
 - Slice 5: done
 - Evidence: added `ops/versioning-policy.md` (bump/deprecation rules), `ops/release-checklist.md` (tag/release runbook with dry-run steps), and `CHANGELOG.md` starter with `0.1.0` baseline.
-- Slice 6: pending
+- Slice 6: done
+- Evidence: added `ops/consumer-integration.md` with install + quickstart + GitHub/Bitbucket interim usage, updated root `README.md` with consumer quickstart and guide link, and validated raw/parsed CLI commands against fixtures in isolated venv.
 - Slice 7: pending
 - Slice 8: pending
 
