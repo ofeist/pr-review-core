@@ -72,10 +72,33 @@ def build_change_summary(files: List[DiffFile], max_files: int = 8) -> List[str]
     return lines
 
 
+def build_pr_summary(files: List[DiffFile], max_files: int = 3) -> str:
+    """Build one-line PR-oriented summary text for the markdown Summary section."""
+
+    if not files:
+        return "No changed files detected."
+
+    sorted_paths = [f.path for f in sorted(files, key=lambda f: f.path)]
+    visible_paths = sorted_paths[:max_files]
+    hidden_count = max(0, len(sorted_paths) - len(visible_paths))
+
+    if len(sorted_paths) == 1:
+        summary = f"Changed 1 file: `{visible_paths[0]}`."
+    else:
+        visible = ", ".join(f"`{path}`" for path in visible_paths)
+        summary = f"Changed {len(sorted_paths)} files: {visible}."
+
+    if hidden_count:
+        summary += f" (+{hidden_count} more)"
+
+    return summary
+
+
 def merge_chunk_markdowns(
     markdowns: List[str],
     *,
     change_summary_lines: Optional[List[str]] = None,
+    summary_prefix: Optional[str] = None,
 ) -> str:
     """Merge chunk-level markdown results into one deterministic review."""
 
@@ -92,9 +115,10 @@ def merge_chunk_markdowns(
 
     chunk_count = len(markdowns)
     if findings:
-        summary = f"Reviewed {chunk_count} chunk(s). Kept {len(findings)} unique finding(s)."
+        stats = f"Reviewed {chunk_count} chunk(s). Kept {len(findings)} unique finding(s)."
     else:
-        summary = f"Reviewed {chunk_count} chunk(s). No actionable findings after filtering."
+        stats = f"Reviewed {chunk_count} chunk(s). No actionable findings after filtering."
+    summary = f"{summary_prefix} {stats}".strip() if summary_prefix else stats
 
     out: List[str] = [
         "## AI Review",

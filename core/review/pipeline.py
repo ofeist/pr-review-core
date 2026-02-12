@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 from core.diff.types import DiffFile
 from core.review.adapters.fake import FakeModelAdapter
 from core.review.adapters.openai_adapter import AdapterConfigError, OpenAIModelAdapter
-from core.review.chunking import build_change_summary, chunk_diff_files, merge_chunk_markdowns
+from core.review.chunking import build_change_summary, build_pr_summary, chunk_diff_files, merge_chunk_markdowns
 from core.review.model_adapter import ModelAdapter
 from core.review.noise_filter import filter_review_markdown
 from core.review.output_normalizer import normalize_review_markdown
@@ -52,6 +52,7 @@ def run_review(
 
     adapter = adapter_override if adapter_override is not None else get_adapter(adapter_name)
     change_summary_lines = build_change_summary(files)
+    summary_prefix = build_pr_summary(files)
 
     # Step 1: try single full-diff review first.
     try:
@@ -62,7 +63,11 @@ def run_review(
             base_ref=base_ref,
             head_ref=head_ref,
         )
-        return merge_chunk_markdowns([full_output], change_summary_lines=change_summary_lines)
+        return merge_chunk_markdowns(
+            [full_output],
+            change_summary_lines=change_summary_lines,
+            summary_prefix=summary_prefix,
+        )
     except Exception as exc:
         if not fallback_enabled:
             raise RuntimeError("Full-diff review failed and fallback mode is disabled.") from exc
@@ -86,7 +91,11 @@ def run_review(
                 LOGGER.warning("Fallback chunk review failed for file '%s': %s", file_obj.path, exc)
 
     if fallback_outputs:
-        return merge_chunk_markdowns(fallback_outputs, change_summary_lines=change_summary_lines)
+        return merge_chunk_markdowns(
+            fallback_outputs,
+            change_summary_lines=change_summary_lines,
+            summary_prefix=summary_prefix,
+        )
 
     # Step 3: controlled final fallback if everything failed.
     change_summary_block = "\n".join(change_summary_lines) if change_summary_lines else "- Not available."

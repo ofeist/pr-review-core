@@ -131,11 +131,46 @@ EVIDENCE_MARKERS = {
     "because",
     "due to",
     "for example",
+    "e.g.",
     "evidence",
-    "in ",
     "at line",
+    "line ",
+    "hunk ",
+    "file ",
+    "in `",
+    "before ",
+    "after ",
     "when",
-    "where",
+    "if ",
+}
+
+ISSUE_CLAIM_KEYWORDS = {
+    "risk",
+    "bug",
+    "broken",
+    "breaks",
+    "failure",
+    "fails",
+    "error",
+    "incorrect",
+    "unsafe",
+    "vulnerability",
+    "regression",
+    "missing",
+    "exception",
+    "crash",
+    "panic",
+    "deadlock",
+    "race",
+    "leak",
+    "overflow",
+    "injection",
+    "xss",
+    "sql",
+    "auth",
+    "permission",
+    "timeout",
+    "null",
 }
 
 
@@ -218,7 +253,7 @@ def _filter_findings(findings: List[str]) -> List[str]:
             continue
         if _is_positive_quality_statement(text):
             continue
-        if _is_non_actionable_without_explicit_risk(text):
+        if _is_non_actionable_without_issue_and_evidence(text):
             continue
         if _is_speculative_without_evidence(text):
             continue
@@ -342,9 +377,17 @@ def _is_negated_risk_statement(text: str) -> bool:
     return any(pattern in lowered for pattern in negation_patterns)
 
 
-def _is_non_actionable_without_explicit_risk(text: str) -> bool:
-    # Strict mode: keep only findings with explicit risk semantics.
-    return not _contains_risk_signal(text)
+def _has_issue_claim(text: str) -> bool:
+    return _contains_any(text, ISSUE_CLAIM_KEYWORDS) or _contains_risk_signal(text)
+
+
+def _has_evidence(text: str) -> bool:
+    return _contains_any(text, EVIDENCE_MARKERS)
+
+
+def _is_non_actionable_without_issue_and_evidence(text: str) -> bool:
+    # Strict mode: keep only findings that state an issue and include concrete evidence.
+    return not (_has_issue_claim(text) and _has_evidence(text))
 
 
 def _dedupe_key(text: str) -> str:

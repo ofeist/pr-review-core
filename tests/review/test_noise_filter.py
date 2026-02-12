@@ -56,6 +56,19 @@ class NoiseFilterTest(unittest.TestCase):
         self.assertIn("Null dereference risk", output)
         self.assertNotIn("- No issues found.", output)
 
+    def test_filters_issue_claim_without_evidence(self) -> None:
+        raw = (
+            "## AI Review\n\n"
+            "### Summary\n"
+            "One possible issue.\n\n"
+            "### Findings\n"
+            "- Potential SQL injection risk in query builder.\n"
+        )
+
+        output = filter_review_markdown(raw)
+        self.assertIn("- No issues found.", output)
+        self.assertNotIn("Potential SQL injection risk", output)
+
     def test_filters_meta_and_incomplete_fragment_findings(self) -> None:
         raw = (
             "## AI Review\n\n"
