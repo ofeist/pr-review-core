@@ -37,6 +37,7 @@ Out of scope right now:
 - `ops/versioning-policy.md`: version bump and compatibility policy
 - `ops/compatibility-policy.md`: CLI/markdown compatibility and deprecation rules
 - `ops/release-checklist.md`: release/tag checklist
+- `ops/package-testing.md`: local package build/install validation steps
 - `ops/done/phase-4-exit-validation.md`: Phase 4 readiness validation and handoff notes
 - `ops/consumer-integration.md`: consumer quickstart for GitHub/Bitbucket integration
 - `ops/IMPLEMENTATION-GUARDRAILS.md`: implementation boundaries and contract guardrails
@@ -51,6 +52,8 @@ Out of scope right now:
 Notes:
 - Base install is sufficient for `--adapter fake`.
 - `--adapter openai` requires both `OPENAI_API_KEY` and the `openai` extra.
+
+For package validation steps, see `ops/package-testing.md`.
 
 ## Consumer Quickstart
 Install in a consumer repository:
