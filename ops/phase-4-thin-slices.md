@@ -5,6 +5,7 @@ Break **Phase 4 - Packaging and Distribution Readiness** into small, end-to-end 
 
 ## Status
 - Slice 0: done
+- Evidence: contract freeze documented in `ops/IMPLEMENTATION-GUARDRAILS.md` and baseline review suite green (`60 tests`).
 - Slice 1: pending
 - Slice 2: pending
 - Slice 3: pending
