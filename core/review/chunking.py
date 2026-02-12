@@ -97,20 +97,15 @@ def build_pr_summary(files: List[DiffFile], max_files: int = 3) -> str:
 def build_intent_summary(pr_title: str = "", pr_body: str = "", max_chars: int = 240) -> str:
     """Build deterministic one-line intent summary from PR metadata."""
 
-    title = _normalize_ws(pr_title)
-    body = _normalize_ws(pr_body)
+    title = _clean_intent_text(pr_title)
+    body = _clean_intent_text(pr_body)
     if not title and not body:
         return "Intent not provided."
 
-    if title and body:
-        if body.lower() == title.lower():
-            return _truncate(title, max_chars)
-        return _truncate(f"{title} - {body}", max_chars)
-
     if title:
-        return _truncate(title, max_chars)
+        return _truncate(_first_sentence(title), max_chars)
 
-    return _truncate(body, max_chars)
+    return _truncate(_first_sentence(body), max_chars)
 
 
 def merge_chunk_markdowns(
@@ -282,3 +277,39 @@ def _truncate(text: str, max_chars: int) -> str:
     if max_chars <= 3:
         return "." * max_chars
     return text[: max_chars - 3].rstrip() + "..."
+
+
+def _clean_intent_text(text: str) -> str:
+    if not text:
+        return ""
+
+    cleaned = text.replace("\r\n", "\n").replace("\r", "\n")
+    cleaned = re.sub(r"```.*?```", " ", cleaned, flags=re.S)
+    cleaned = cleaned.replace("`", " ")
+
+    lines: List[str] = []
+    for raw_line in cleaned.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line.startswith("#"):
+            continue
+        line = re.sub(r"^[-*+]\s+", "", line)
+        line = re.sub(r"^\d+\.\s+", "", line)
+        line = line.strip(":- ")
+        if not line:
+            continue
+        if line.lower() in {"what was implemented", "files changed", "validation"}:
+            continue
+        lines.append(line)
+
+    return _normalize_ws(" ".join(lines))
+
+
+def _first_sentence(text: str) -> str:
+    if not text:
+        return ""
+    match = re.search(r"^(.{1,220}?[.!?])(?:\s|$)", text)
+    if match:
+        return match.group(1).strip()
+    return text
