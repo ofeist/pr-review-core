@@ -72,6 +72,29 @@ class ReviewCliTest(unittest.TestCase):
         self.assertEqual(out, "")
         self.assertIn("must be > 0", err)
 
+    def test_cli_includes_intent_section_from_pr_metadata(self) -> None:
+        raw_diff = (
+            "diff --git a/src/app.py b/src/app.py\n"
+            "@@ -1,1 +1,2 @@\n"
+            " def hello():\n"
+            "+    return 'hi'\n"
+        )
+        code, out, err = self._run_main(
+            [
+                "--input-format",
+                "raw",
+                "--adapter",
+                "fake",
+                "--pr-title",
+                "Add greeting return value",
+            ],
+            raw_diff,
+        )
+        self.assertEqual(code, 0)
+        self.assertIn("### Intent", out)
+        self.assertIn("Add greeting return value", out)
+        self.assertEqual(err, "")
+
 
 if __name__ == "__main__":
     unittest.main()

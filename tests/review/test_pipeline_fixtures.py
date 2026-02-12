@@ -32,6 +32,7 @@ class PipelineFixtureRegressionTest(unittest.TestCase):
 
         self.assertIn("## AI Review", output)
         self.assertIn("### Summary", output)
+        self.assertIn("### Intent", output)
         self.assertIn("### Findings", output)
         self.assertIn("No issues found.", output)
 

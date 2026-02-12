@@ -93,6 +93,8 @@ class ChunkMergeTest(unittest.TestCase):
 
         self.assertEqual(merged_first, merged_second)
         self.assertIn("Kept 2 unique finding(s).", merged_first)
+        self.assertIn("### Intent", merged_first)
+        self.assertIn("Intent not provided.", merged_first)
         self.assertEqual(merged_first.count("Missing auth guard before token use"), 1)
 
     def test_run_review_uses_chunking_and_merges(self) -> None:

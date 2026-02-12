@@ -6,7 +6,13 @@ from typing import Dict, List, Optional
 from core.diff.types import DiffFile
 from core.review.adapters.fake import FakeModelAdapter
 from core.review.adapters.openai_adapter import AdapterConfigError, OpenAIModelAdapter
-from core.review.chunking import build_change_summary, build_pr_summary, chunk_diff_files, merge_chunk_markdowns
+from core.review.chunking import (
+    build_change_summary,
+    build_intent_summary,
+    build_pr_summary,
+    chunk_diff_files,
+    merge_chunk_markdowns,
+)
 from core.review.model_adapter import ModelAdapter
 from core.review.noise_filter import filter_review_markdown
 from core.review.output_normalizer import normalize_review_markdown
@@ -47,12 +53,15 @@ def run_review(
     max_changes_per_chunk: int = 200,
     fallback_enabled: bool = True,
     adapter_override: Optional[ModelAdapter] = None,
+    pr_title: str = "",
+    pr_body: str = "",
 ) -> str:
     """Run review generation with full-diff then fallback orchestration."""
 
     adapter = adapter_override if adapter_override is not None else get_adapter(adapter_name)
     change_summary_lines = build_change_summary(files)
     summary_prefix = build_pr_summary(files)
+    intent_summary = build_intent_summary(pr_title, pr_body)
 
     # Step 1: try single full-diff review first.
     try:
@@ -62,11 +71,14 @@ def run_review(
             repository=repository,
             base_ref=base_ref,
             head_ref=head_ref,
+            pr_title=pr_title,
+            pr_body=pr_body,
         )
         return merge_chunk_markdowns(
             [full_output],
             change_summary_lines=change_summary_lines,
             summary_prefix=summary_prefix,
+            intent_summary=intent_summary,
         )
     except Exception as exc:
         if not fallback_enabled:
@@ -85,6 +97,8 @@ def run_review(
                     repository=repository,
                     base_ref=base_ref,
                     head_ref=head_ref,
+                    pr_title=pr_title,
+                    pr_body=pr_body,
                 )
                 fallback_outputs.append(chunk_output)
             except Exception as exc:
@@ -95,6 +109,7 @@ def run_review(
             fallback_outputs,
             change_summary_lines=change_summary_lines,
             summary_prefix=summary_prefix,
+            intent_summary=intent_summary,
         )
 
     # Step 3: controlled final fallback if everything failed.
@@ -104,6 +119,9 @@ def run_review(
         "\n"
         "### Summary\n"
         "Review could not be generated from model output.\n"
+        "\n"
+        "### Intent\n"
+        f"{intent_summary}\n"
         "\n"
         "### Change Summary\n"
         f"{change_summary_block}\n"
@@ -120,12 +138,16 @@ def _review_one_payload(
     repository: str,
     base_ref: str,
     head_ref: str,
+    pr_title: str,
+    pr_body: str,
 ) -> str:
     prompt = build_review_prompt(
         files,
         repository=repository,
         base_ref=base_ref,
         head_ref=head_ref,
+        pr_title=pr_title,
+        pr_body=pr_body,
     )
     raw_output = adapter.generate_review(prompt)
     normalized = normalize_review_markdown(raw_output)
