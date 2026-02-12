@@ -11,7 +11,7 @@ requires-python = ">=3.10"
 authors = [
   { name = "pr-review-core contributors" }
 ]
-license = { text = "MIT" }
+license = "MIT"
 dependencies = []
 
 [project.optional-dependencies]
