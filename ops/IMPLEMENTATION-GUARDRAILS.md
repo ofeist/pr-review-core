@@ -37,6 +37,39 @@ Review markdown must preserve section semantics:
 - `### Findings`
 - Actionable issues only; otherwise `- No issues found.`
 
+### Stable Shape (Phase 4 Slice 0 Freeze)
+Current stable section order:
+1. `## AI Review`
+2. `### Summary`
+3. `### Intent`
+4. `### Change Summary`
+5. `### Findings`
+
+Notes:
+- `Summary` is technical run context, not business intent.
+- `Intent` is derived from PR metadata and normalized to one line.
+- `Findings` must only contain actionable items; empty state is exactly `- No issues found.`
+
+## CLI Contract (Used in CI)
+Stable command shape used by GitHub workflow:
+- `python -m core.review.cli --input-format raw --from-file artifacts/pr.diff --adapter <mode> --pr-title <title> --pr-body <body>`
+
+Stable/expected flags:
+- `--input-format` (`auto|raw|parsed-json`)
+- `--from-file`
+- `--adapter`
+- `--repository`
+- `--base-ref`
+- `--head-ref`
+- `--pr-title`
+- `--pr-body`
+- `--max-changes-per-chunk`
+- `--fallback-mode` (`on|off`)
+
+Contract scope:
+- Flag names and section names above are compatibility-sensitive.
+- Internal wording may evolve, but section meaning and ordering should remain stable.
+
 ## Quality Guardrails
 - No secrets in git history, files, fixtures, or tests.
 - `core/` remains platform-agnostic; no provider-specific API logic in core modules.

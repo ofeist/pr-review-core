@@ -17,9 +17,10 @@ Implemented in this repository:
 - Phase 3 MVP: GitHub Actions PR workflow with comment upsert
 
 Out of scope right now:
-- GitHub App backend (Phase 4)
+- Packaging/distribution work in progress (Phase 4)
+- GitHub App backend (Phase 5)
 - Billing, tenancy, hosted control plane
-- Bitbucket adapter (Phase 5)
+- Bitbucket adapter (Phase 6)
 
 ## Repository Layout
 - `core/README.md`: architecture boundaries
@@ -29,8 +30,10 @@ Out of scope right now:
 - `adapters/github/README.md`: GitHub adapter runbook
 - `adapters/github/scripts/extract_pr_diff.py`: robust PR diff extraction script
 - `ops/ROADMAP.md`: project roadmap
-- `ops/phase-3-thin-slices.md`: Phase 3 execution slices
-- `ops/phase-3-validation-checklist.md`: Phase 3 manual acceptance checklist
+- `ops/phase-4-thin-slices.md`: Phase 4 execution slices
+- `ops/phase-5-thin-slices.md`: Phase 5 execution slices
+- `ops/IMPLEMENTATION-GUARDRAILS.md`: implementation boundaries and contract guardrails
+- `ops/done/phase-3-validation-checklist.md`: Phase 3 manual acceptance checklist
 
 ## Local Usage
 Raw diff review:
@@ -92,7 +95,8 @@ Workflow truncates comment and keeps full/previewed content in artifact.
 - Phase 1: Diff Foundation
 - Phase 2: Review Core
 - Phase 3: GitHub MVP integration
-- Phase 4: GitHub App and commercial readiness
-- Phase 5: Bitbucket adapter parity
+- Phase 4: Packaging and distribution readiness
+- Phase 5: GitHub App and commercial readiness
+- Phase 6: Bitbucket adapter parity
 
 See `ops/ROADMAP.md` for full details.
