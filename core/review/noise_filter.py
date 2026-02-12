@@ -50,10 +50,15 @@ PRAISE_KEYWORDS = {
     "useful heuristic",
     "good guard",
     "good improvement",
+    "improves robustness",
     "maintainable and readable",
+    "maintainability",
     "well-named",
     "clear helper functions",
     "valuable",
+    "tests cover",
+    "increasing confidence",
+    "confidence in correctness",
 }
 
 META_KEYWORDS = {
@@ -182,6 +187,8 @@ def _filter_findings(findings: List[str]) -> List[str]:
             continue
         if _is_non_actionable_affirmation(text):
             continue
+        if _is_non_actionable_without_risk_evidence(text):
+            continue
         if _is_speculative_without_evidence(text):
             continue
 
@@ -256,7 +263,23 @@ def _is_non_actionable_affirmation(text: str) -> bool:
     lowered = text.lower().strip()
     if lowered.startswith("no ") and "issue" in lowered:
         return True
+    if "no regressions" in lowered or "no breaking changes" in lowered:
+        return True
     return _contains_any(text, PRAISE_KEYWORDS)
+
+
+def _has_evidence_signal(text: str) -> bool:
+    lowered = text.lower()
+    if _contains_any(text, EVIDENCE_MARKERS):
+        return True
+    if " in " in lowered and (".py" in lowered or ".ts" in lowered or ".js" in lowered):
+        return True
+    return False
+
+
+def _is_non_actionable_without_risk_evidence(text: str) -> bool:
+    # Keep findings that have either concrete risk words or evidence anchors.
+    return not _contains_risk_signal(text) and not _has_evidence_signal(text)
 
 
 def _dedupe_key(text: str) -> str:

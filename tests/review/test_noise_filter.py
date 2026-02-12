@@ -64,13 +64,13 @@ class NoiseFilterTest(unittest.TestCase):
             "### Findings\n"
             "- The change from model = os.getenv(...) to\n"
             "- Installing openai dependency in CI each run might slow down workflows.\n"
-            "- Introducing a check for timeout_seconds <= 0 improves robustness because it avoids invalid values.\n"
+            "- Timeout misconfiguration risk: timeout_seconds <= 0 can break API calls because client timeout becomes invalid.\n"
         )
 
         output = filter_review_markdown(raw)
         self.assertNotIn("The change from", output)
         self.assertNotIn("Installing openai dependency in CI", output)
-        self.assertIn("timeout_seconds <= 0", output)
+        self.assertIn("Timeout misconfiguration risk", output)
 
     def test_filters_non_actionable_affirmations(self) -> None:
         raw = (
@@ -87,6 +87,23 @@ class NoiseFilterTest(unittest.TestCase):
         self.assertNotIn("No security issues", output)
         self.assertNotIn("maintainable and readable", output)
         self.assertIn("Null dereference risk", output)
+
+    def test_filters_non_actionable_lines_from_real_openai_output_pattern(self) -> None:
+        raw = (
+            "## AI Review\n\n"
+            "### Summary\n"
+            "Reviewed 1 chunk(s). Kept 3 unique finding(s).\n\n"
+            "### Findings\n"
+            "- No regressions or breaking changes are introduced; all new filters are additive and maintain prior behavior.\n"
+            "- The new fallback in output_normalizer.py to recover plain findings lines in sections without bullets improves robustness in parsing review markdown output.\n"
+            "- Tests cover new keyword filtering and normalization paths, increasing confidence in correctness and maintainability of these improvements.\n"
+        )
+
+        output = filter_review_markdown(raw)
+        self.assertIn("- No issues found.", output)
+        self.assertNotIn("No regressions", output)
+        self.assertNotIn("improves robustness", output)
+        self.assertNotIn("Tests cover", output)
 
 
 if __name__ == "__main__":
