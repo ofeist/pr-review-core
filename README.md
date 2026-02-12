@@ -30,13 +30,15 @@ Out of scope right now:
 - `.github/workflows/package-smoke.yml`: package build/install/smoke validation workflow
 - `adapters/github/README.md`: GitHub adapter runbook
 - `adapters/github/scripts/extract_pr_diff.py`: robust PR diff extraction script
+- `CHANGELOG.md`: release notes and user-visible changes
 - `ops/ROADMAP.md`: project roadmap
 - `ops/phase-4-thin-slices.md`: Phase 4 execution slices
 - `ops/phase-5-thin-slices.md`: Phase 5 execution slices
+- `ops/versioning-policy.md`: version bump and compatibility policy
+- `ops/release-checklist.md`: release/tag checklist
 - `ops/IMPLEMENTATION-GUARDRAILS.md`: implementation boundaries and contract guardrails
 - `ops/done/phase-3-validation-checklist.md`: Phase 3 manual acceptance checklist
 
-## Local Usage
 ## Install Matrix
 - Base/core only:
   - `python -m pip install .`
