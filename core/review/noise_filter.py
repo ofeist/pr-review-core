@@ -211,7 +211,7 @@ def _filter_findings(findings: List[str]) -> List[str]:
             continue
         if _is_positive_quality_statement(text):
             continue
-        if _is_non_actionable_without_risk_evidence(text):
+        if _is_non_actionable_without_explicit_risk(text):
             continue
         if _is_speculative_without_evidence(text):
             continue
@@ -308,18 +308,9 @@ def _is_positive_quality_statement(text: str) -> bool:
     return _contains_any(text, POSITIVE_QUALITY_KEYWORDS)
 
 
-def _has_evidence_signal(text: str) -> bool:
-    lowered = text.lower()
-    if _contains_any(text, EVIDENCE_MARKERS):
-        return True
-    if " in " in lowered and (".py" in lowered or ".ts" in lowered or ".js" in lowered):
-        return True
-    return False
-
-
-def _is_non_actionable_without_risk_evidence(text: str) -> bool:
-    # Keep findings that have either concrete risk words or evidence anchors.
-    return not _contains_risk_signal(text) and not _has_evidence_signal(text)
+def _is_non_actionable_without_explicit_risk(text: str) -> bool:
+    # Strict mode: keep only findings with explicit risk semantics.
+    return not _contains_risk_signal(text)
 
 
 def _dedupe_key(text: str) -> str:
