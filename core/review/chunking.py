@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import List
+from typing import List, Optional
 
 from core.diff.types import Change, DiffFile, DiffHunk
 
@@ -47,7 +47,36 @@ def chunk_diff_files(files: List[DiffFile], max_changes_per_chunk: int = 200) ->
     return chunks or [[]]
 
 
-def merge_chunk_markdowns(markdowns: List[str]) -> str:
+def build_change_summary(files: List[DiffFile], max_files: int = 8) -> List[str]:
+    """Build deterministic, neutral change-summary bullets from parsed diff."""
+
+    if not files:
+        return ["- No changed files detected."]
+
+    lines: List[str] = []
+    for file_obj in sorted(files, key=lambda f: f.path)[:max_files]:
+        additions = 0
+        removals = 0
+        for hunk in file_obj.hunks:
+            for change in hunk.changes:
+                if change.type.value == "add":
+                    additions += 1
+                elif change.type.value == "remove":
+                    removals += 1
+        lines.append(f"- `{file_obj.path}` (+{additions}/-{removals}, hunks: {len(file_obj.hunks)})")
+
+    hidden_count = max(0, len(files) - max_files)
+    if hidden_count:
+        lines.append(f"- {hidden_count} additional file(s) changed.")
+
+    return lines
+
+
+def merge_chunk_markdowns(
+    markdowns: List[str],
+    *,
+    change_summary_lines: Optional[List[str]] = None,
+) -> str:
     """Merge chunk-level markdown results into one deterministic review."""
 
     findings: List[str] = []
@@ -73,8 +102,17 @@ def merge_chunk_markdowns(markdowns: List[str]) -> str:
         "### Summary",
         summary,
         "",
-        "### Findings",
+        "### Change Summary",
     ]
+    if change_summary_lines:
+        out.extend(change_summary_lines)
+    else:
+        out.append("- Not available.")
+
+    out.extend([
+        "",
+        "### Findings",
+    ])
 
     if findings:
         out.extend([f"- {item}" for item in findings])
