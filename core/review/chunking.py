@@ -310,7 +310,10 @@ def _clean_intent_text(text: str) -> str:
         compact,
         flags=re.I,
     )
+    # If title/body leaked list-style continuation like ": - item", keep only the lead clause.
+    compact = re.sub(r":\s*-\s+.*$", "", compact)
     compact = re.sub(r"\s*-\s*$", "", compact)
+    compact = re.sub(r"\s*[:\-]\s*$", "", compact)
     compact = _normalize_ws(compact)
     return compact
 

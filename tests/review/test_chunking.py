@@ -153,6 +153,13 @@ class IntentSummaryTest(unittest.TestCase):
         )
         self.assertEqual(intent, "Added PR metadata flow end-to-end")
 
+    def test_strips_heading_list_spillover_tail(self) -> None:
+        intent = build_intent_summary(
+            pr_title="Added PR metadata flow end-to-end: - workflow -> CLI -> pipeline -> prompt",
+            pr_body="",
+        )
+        self.assertEqual(intent, "Added PR metadata flow end-to-end")
+
 
 if __name__ == "__main__":
     unittest.main()
