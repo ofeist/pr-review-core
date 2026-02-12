@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pr-review-core"
+version = "0.1.0"
+description = "Platform-agnostic core for AI-assisted pull request review."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "pr-review-core contributors" }
+]
+license = "MIT"
+dependencies = []
+
+[project.optional-dependencies]
+openai = ["openai>=1.0.0"]
+
+[tool.setuptools.packages.find]
+include = ["core*"]

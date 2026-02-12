@@ -115,6 +115,10 @@ Contract scope:
 - Soft migration period with dual support where feasible.
 - Removal only after explicit migration note in docs/changelog.
 
+## Versioning Baseline
+- Current packaging baseline uses `0.x` series (`0.1.0`).
+- During `0.x`, treat markdown/CLI contract changes as compatibility-sensitive and document them explicitly.
+
 ## Decision Rule for Future Work
 When deciding where new logic belongs:
 1. If reusable across platforms, place it in `core/`.
