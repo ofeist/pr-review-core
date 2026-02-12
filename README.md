@@ -23,9 +23,9 @@ Out of scope right now:
 - Bitbucket adapter (Phase 6)
 
 ## Repository Layout
-- `core/README.md`: architecture boundaries
-- `core/diff/README.md`: diff parsing module contract
-- `core/review/README.md`: review module contract and CLI
+- `src/core/README.md`: architecture boundaries
+- `src/core/diff/README.md`: diff parsing module contract
+- `src/core/review/README.md`: review module contract and CLI
 - `.github/workflows/ai-review.yml`: GitHub PR review workflow
 - `adapters/github/README.md`: GitHub adapter runbook
 - `adapters/github/scripts/extract_pr_diff.py`: robust PR diff extraction script
@@ -39,13 +39,13 @@ Out of scope right now:
 Raw diff review:
 
 ```bash
-git diff origin/main...HEAD | python -m core.review.cli --input-format raw --adapter fake
+PYTHONPATH=src git diff origin/main...HEAD | python -m core.review.cli --input-format raw --adapter fake
 ```
 
 Parsed JSON review:
 
 ```bash
-git diff origin/main...HEAD | python -m core.diff.cli | python -m core.review.cli --input-format parsed-json --adapter fake
+PYTHONPATH=src git diff origin/main...HEAD | python -m core.diff.cli | python -m core.review.cli --input-format parsed-json --adapter fake
 ```
 
 ## GitHub Actions Setup (Phase 3 MVP)

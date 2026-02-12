@@ -52,7 +52,7 @@ Notes:
 
 ## CLI Contract (Used in CI)
 Stable command shape used by GitHub workflow:
-- `python -m core.review.cli --input-format raw --from-file artifacts/pr.diff --adapter <mode> --pr-title <title> --pr-body <body>`
+- `PYTHONPATH=src python -m core.review.cli --input-format raw --from-file artifacts/pr.diff --adapter <mode> --pr-title <title> --pr-body <body>`
 
 Stable/expected flags:
 - `--input-format` (`auto|raw|parsed-json`)

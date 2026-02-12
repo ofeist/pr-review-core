@@ -1,6 +1,11 @@
 # test_parse_diff.py
 # Mini end-to-end test: read raw diff string → parse → DiffFile[]
 
+from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+
 from core.diff.parse_diff import parse_diff
 
 # --- MINI RAW DIFF STRING ---

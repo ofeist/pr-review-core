@@ -1,5 +1,10 @@
 # test_read_diff.py
 
+from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+
 from core.diff.read_diff import read_diff, DiffReadError
 
 # --- TEST 1: read from string ---

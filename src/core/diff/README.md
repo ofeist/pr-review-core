@@ -18,7 +18,7 @@ This module is intentionally limited:
 - `types.py`: define canonical dataclasses used by the rest of core.
 
 ## Data Model
-Defined in `core/diff/types.py`:
+Defined in `src/core/diff/types.py`:
 - `ChangeType`: `add`, `remove`, `context`
 - `Change`: one line-level change
 - `DiffHunk`: hunk metadata and list of changes
@@ -52,7 +52,7 @@ Filtering is a separate step and currently ignores patterns such as:
 Print parsed and filtered JSON from stdin diff:
 
 ```bash
-git diff origin/main...HEAD | python -m core.diff.cli
+PYTHONPATH=src git diff origin/main...HEAD | python -m core.diff.cli
 ```
 
 ## Boundaries
@@ -69,7 +69,7 @@ Does not belong in this module:
 - comment publishing
 
 ## Testing Direction
-Current tests are basic scripts in repo root. The next step is fixture-based tests covering:
+Current legacy smoke scripts are in `tests/legacy/`. The next step is fixture-based tests covering:
 - empty diffs
 - multi-file diffs
 - multi-hunk files
