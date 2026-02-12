@@ -160,6 +160,16 @@ class IntentSummaryTest(unittest.TestCase):
         )
         self.assertEqual(intent, "Added PR metadata flow end-to-end")
 
+    def test_prefers_body_when_title_looks_truncated(self) -> None:
+        intent = build_intent_summary(
+            pr_title="docs(validation): complete phase-4 slice-8 exit checklist and handoff…",
+            pr_body="docs(validation): complete phase-4 slice-8 exit checklist and handoff notes.",
+        )
+        self.assertEqual(
+            intent,
+            "docs(validation): complete phase-4 slice-8 exit checklist and handoff notes.",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
