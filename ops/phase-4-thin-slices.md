@@ -14,7 +14,8 @@ Break **Phase 4 - Packaging and Distribution Readiness** into small, end-to-end 
 - Evidence: install matrix documented (`pip install .` and `pip install ".[openai]"`), optional dependency behavior covered by adapter test for missing `openai` package, and review suite remains green.
 - Slice 4: done
 - Evidence: added `.github/workflows/package-smoke.yml` (PR/tag/manual), validates build/install and fixture-driven CLI smoke output shape, uploads `dist/*` and smoke markdown artifacts, and local smoke/tests passed (`make smoke-package`, review suite `61 tests`).
-- Slice 5: pending
+- Slice 5: done
+- Evidence: added `ops/versioning-policy.md` (bump/deprecation rules), `ops/release-checklist.md` (tag/release runbook with dry-run steps), and `CHANGELOG.md` starter with `0.1.0` baseline.
 - Slice 6: pending
 - Slice 7: pending
 - Slice 8: pending
