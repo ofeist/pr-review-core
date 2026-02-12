@@ -113,4 +113,7 @@ Exit criteria:
 3. Add initial LLM adapter and local CLI command for offline review generation.
 4. Create GitHub Action MVP to post PR comments from generated markdown.
 
+## Implementation Notes
+- See `ops/IMPLEMENTATION-GUARDRAILS.md` for scope boundaries, integration patterns, output contract, and change guardrails.
+
 
