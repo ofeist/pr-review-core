@@ -27,20 +27,24 @@ class OpenAIModelAdapter:
     @classmethod
     def from_env(cls) -> "OpenAIModelAdapter":
         api_key = os.getenv("OPENAI_API_KEY", "").strip()
-        model = os.getenv("OPENAI_MODEL", "gpt-4.1-mini").strip()
-        timeout_value = os.getenv("OPENAI_TIMEOUT_SECONDS", "30").strip()
+        model = os.getenv("OPENAI_MODEL", "").strip() or "gpt-4.1-mini"
+        timeout_raw = os.getenv("OPENAI_TIMEOUT_SECONDS", "").strip()
 
         if not api_key:
             raise AdapterConfigError("OPENAI_API_KEY is required for openai adapter.")
 
-        try:
-            timeout_seconds = int(timeout_value)
-        except ValueError as exc:
-            raise AdapterConfigError("OPENAI_TIMEOUT_SECONDS must be an integer.") from exc
+        timeout_seconds = 30
+        if timeout_raw:
+            try:
+                timeout_seconds = int(timeout_raw)
+            except ValueError as exc:
+                raise AdapterConfigError("OPENAI_TIMEOUT_SECONDS must be an integer.") from exc
+        if timeout_seconds <= 0:
+            raise AdapterConfigError("OPENAI_TIMEOUT_SECONDS must be > 0.")
 
         return cls(
             api_key=api_key,
-            model=model or "gpt-4.1-mini",
+            model=model,
             timeout_seconds=timeout_seconds,
         )
 

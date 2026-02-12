@@ -50,6 +50,21 @@ class OpenAIAdapterConfigTest(unittest.TestCase):
         self.assertEqual(adapter.model, "gpt-test")
         self.assertEqual(adapter.timeout_seconds, 42)
 
+    def test_from_env_uses_defaults_for_empty_optional_values(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "OPENAI_API_KEY": "test-key",
+                "OPENAI_MODEL": "",
+                "OPENAI_TIMEOUT_SECONDS": "",
+            },
+            clear=True,
+        ):
+            adapter = OpenAIModelAdapter.from_env()
+
+        self.assertEqual(adapter.model, "gpt-4.1-mini")
+        self.assertEqual(adapter.timeout_seconds, 30)
+
 
 class OpenAIAdapterRuntimeTest(unittest.TestCase):
     def test_generate_review_builds_expected_request(self) -> None:
