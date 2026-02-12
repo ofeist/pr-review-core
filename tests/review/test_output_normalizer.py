@@ -36,6 +36,24 @@ class OutputNormalizerTest(unittest.TestCase):
         self.assertIn("Found a high-risk auth bug.", output)
         self.assertIn("- Missing null guard before token dereference", output)
 
+    def test_plain_lines_in_findings_section_are_recovered_as_bullets(self) -> None:
+        raw = (
+            "### Summary\n"
+            "Review completed.\n"
+            "\n"
+            "### Findings\n"
+            "The change from model = os.getenv(\"OPENAI_MODEL\", \"gpt-4.1-mini\").strip() to\n"
+            "Introducing a check for timeout_seconds <= 0 improves robustness.\n"
+            "The addition of a test verifying default fallback behavior prevents regressions.\n"
+        )
+        output = normalize_review_markdown(raw)
+
+        self.assertIn("- Introducing a check for timeout_seconds <= 0 improves robustness.", output)
+        self.assertIn(
+            "- The addition of a test verifying default fallback behavior prevents regressions.",
+            output,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

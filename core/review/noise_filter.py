@@ -46,6 +46,36 @@ STYLE_KEYWORDS = {
     "prettier",
 }
 
+META_KEYWORDS = {
+    "ci",
+    "pipeline",
+    "workflow",
+    "github actions",
+    "pip",
+    "dependency",
+    "dependencies",
+    "installing",
+    "test coverage",
+    "regression test",
+    "unit test",
+    "test verifying",
+    "valuable for preventing regressions",
+    "consider caching",
+}
+
+CI_META_KEYWORDS = {
+    "continuous integration",
+    "pipeline",
+    "workflow",
+    "github actions",
+    "dependency",
+    "dependencies",
+    "installing",
+    "pip",
+    "cache",
+    "caching",
+}
+
 SPECULATIVE_MARKERS = {
     "might",
     "maybe",
@@ -134,6 +164,12 @@ def _filter_findings(findings: List[str]) -> List[str]:
             continue
         if _is_obvious_restatement(text):
             continue
+        if _is_meta_comment(text):
+            continue
+        if _is_ci_meta_comment(text):
+            continue
+        if _is_incomplete_fragment(text):
+            continue
         if _is_speculative_without_evidence(text):
             continue
 
@@ -175,6 +211,7 @@ def _is_style_only(text: str) -> bool:
 def _is_obvious_restatement(text: str) -> bool:
     lowered = text.lower()
     restatement_patterns = (
+        "the change from",
         "this change adds",
         "this change removes",
         "line was added",
@@ -187,6 +224,20 @@ def _is_obvious_restatement(text: str) -> bool:
 
 def _is_speculative_without_evidence(text: str) -> bool:
     return _contains_any(text, SPECULATIVE_MARKERS) and not _contains_any(text, EVIDENCE_MARKERS)
+
+
+def _is_meta_comment(text: str) -> bool:
+    return _contains_any(text, META_KEYWORDS) and not _contains_risk_signal(text)
+
+
+def _is_ci_meta_comment(text: str) -> bool:
+    return _contains_any(text, CI_META_KEYWORDS)
+
+
+def _is_incomplete_fragment(text: str) -> bool:
+    lowered = text.lower().rstrip()
+    incomplete_suffixes = (" to", " from", " because", " due to", " by", " with")
+    return lowered.endswith(incomplete_suffixes)
 
 
 def _dedupe_key(text: str) -> str:

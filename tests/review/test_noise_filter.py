@@ -56,6 +56,22 @@ class NoiseFilterTest(unittest.TestCase):
         self.assertIn("Null dereference risk", output)
         self.assertNotIn("- No issues found.", output)
 
+    def test_filters_meta_and_incomplete_fragment_findings(self) -> None:
+        raw = (
+            "## AI Review\n\n"
+            "### Summary\n"
+            "Review done.\n\n"
+            "### Findings\n"
+            "- The change from model = os.getenv(...) to\n"
+            "- Installing openai dependency in CI each run might slow down workflows.\n"
+            "- Introducing a check for timeout_seconds <= 0 improves robustness because it avoids invalid values.\n"
+        )
+
+        output = filter_review_markdown(raw)
+        self.assertNotIn("The change from", output)
+        self.assertNotIn("Installing openai dependency in CI", output)
+        self.assertIn("timeout_seconds <= 0", output)
+
 
 if __name__ == "__main__":
     unittest.main()
