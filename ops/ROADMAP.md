@@ -75,7 +75,17 @@ Goal: fully automated AI PR comment flow on GitHub.
 Exit criteria:
 - End-to-end comment posted automatically on test repository PRs.
 
-### Phase 4 - GitHub App & Commercial Readiness
+### Phase 4 - Packaging and Distribution Readiness
+Goal: make the core engine reusable as a versioned package across repositories.
+- Freeze CLI and markdown output contract.
+- Add Python packaging metadata and console entrypoint.
+- Add release smoke checks (build/install/run).
+- Document install and usage patterns for GitHub and Bitbucket interim integration.
+
+Exit criteria:
+- Versioned package can be installed and executed deterministically in CI.
+
+### Phase 5 - GitHub App & Commercial Readiness
 Goal: move from repo-local automation to product-grade integration.
 - Build GitHub App with webhook-driven backend.
 - Centralize logic server-side for maintainability and billing support.
@@ -86,7 +96,7 @@ Goal: move from repo-local automation to product-grade integration.
 Exit criteria:
 - Multi-repo onboarding and basic billing flow operational.
 
-### Phase 5 - Bitbucket Adapter
+### Phase 6 - Bitbucket Adapter
 Goal: expand to Atlassian ecosystem without rewriting core.
 - Implement Bitbucket webhook/event adapter.
 - Implement PR comment publisher via Bitbucket REST API.
@@ -115,5 +125,6 @@ Exit criteria:
 
 ## Implementation Notes
 - See `ops/IMPLEMENTATION-GUARDRAILS.md` for scope boundaries, integration patterns, output contract, and change guardrails.
+
 
 

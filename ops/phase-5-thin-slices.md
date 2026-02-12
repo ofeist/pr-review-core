@@ -1,7 +1,7 @@
-﻿# Phase 4 Thin Slices
+﻿# Phase 5 Thin Slices
 
 ## Purpose
-Break **Phase 4 - GitHub App & Commercial Readiness** into small, end-to-end slices that move from workflow-only automation to product-grade GitHub App architecture.
+Break **Phase 5 - GitHub App & Commercial Readiness** into small, end-to-end slices that move from workflow-only automation to product-grade GitHub App architecture.
 
 ## Status
 - Slice 0: done
@@ -15,7 +15,7 @@ Break **Phase 4 - GitHub App & Commercial Readiness** into small, end-to-end sli
 - Slice 8: pending
 - Slice 9: pending
 
-## Phase 4 Goal (from roadmap)
+## Phase 5 Goal (from roadmap)
 Move from repo-local workflow integration to a product-ready GitHub App model with centralized backend logic, onboarding, and monetization foundations.
 
 ## Working Rules
@@ -161,13 +161,13 @@ Done when:
 - Feature availability can be controlled by plan in backend.
 
 ### Slice 9 - Hardening and Exit Pack
-Objective: finish Phase 4 with operational readiness and documentation.
+Objective: finish Phase 5 with operational readiness and documentation.
 
 Deliverables:
 - Runbook for incident handling and retries.
 - Deployment doc (env vars, secrets, key rotation).
 - Migration notes from workflow-only MVP to app-based flow.
-- Phase 4 validation checklist in `ops/`.
+- Phase 5 validation checklist in `ops/`.
 
 Tests:
 - Staging end-to-end test on test GitHub App installation.
@@ -176,7 +176,7 @@ Tests:
 Done when:
 - Team can deploy, operate, and troubleshoot GitHub App flow without tribal knowledge.
 
-## Phase 4 Acceptance Checklist
+## Phase 5 Acceptance Checklist
 - GitHub webhook signature verification is enforced.
 - Installation token auth is reliable.
 - PR events are deduped and processed idempotently.
@@ -188,7 +188,7 @@ Done when:
 - Docs and runbooks are complete.
 
 ## Exit Condition
-Phase 4 is complete when the GitHub App backend can receive PR events, generate reviews, upsert comments reliably, and enforce basic plan gating with operational runbooks in place.
+Phase 5 is complete when the GitHub App backend can receive PR events, generate reviews, upsert comments reliably, and enforce basic plan gating with operational runbooks in place.
 
 ## Suggested Order
 1. Slice 0
@@ -206,4 +206,5 @@ Phase 4 is complete when the GitHub App backend can receive PR events, generate 
 - Keep workflow-based MVP as fallback until app path is stable.
 - Validate each slice on staging installation before production rollout.
 - Commit per slice with test evidence and migration notes.
+
 
