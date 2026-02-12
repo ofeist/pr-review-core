@@ -36,6 +36,17 @@ Out of scope right now:
 - `ops/done/phase-3-validation-checklist.md`: Phase 3 manual acceptance checklist
 
 ## Local Usage
+## Install Matrix
+- Base/core only:
+  - `python -m pip install .`
+- With OpenAI adapter support:
+  - `python -m pip install ".[openai]"`
+
+Notes:
+- Base install is sufficient for `--adapter fake`.
+- `--adapter openai` requires both `OPENAI_API_KEY` and the `openai` extra.
+
+## Local Usage
 Raw diff review:
 
 ```bash

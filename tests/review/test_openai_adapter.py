@@ -1,4 +1,5 @@
-﻿import os
+import builtins
+import os
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -122,6 +123,25 @@ class OpenAIAdapterRuntimeTest(unittest.TestCase):
 
         with self.assertRaises(AdapterRuntimeError):
             adapter.generate_review("prompt text")
+
+    def test_get_client_missing_openai_dependency_is_controlled_error(self) -> None:
+        adapter = OpenAIModelAdapter(
+            api_key="test-key",
+            model="gpt-test",
+        )
+
+        real_import = builtins.__import__
+
+        def fake_import(name, *args, **kwargs):
+            if name == "openai":
+                raise ImportError("simulated missing dependency")
+            return real_import(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=fake_import):
+            with self.assertRaises(AdapterConfigError) as ctx:
+                adapter._get_client()
+
+        self.assertIn("openai package is not installed", str(ctx.exception))
 
 
 if __name__ == "__main__":
