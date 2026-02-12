@@ -146,6 +146,13 @@ class IntentSummaryTest(unittest.TestCase):
     def test_fallback_when_both_missing(self) -> None:
         self.assertEqual(build_intent_summary("", ""), "Intent not provided.")
 
+    def test_strips_what_was_implemented_heading_prefix(self) -> None:
+        intent = build_intent_summary(
+            pr_title="What was implemented - Added PR metadata flow end-to-end: - ",
+            pr_body="",
+        )
+        self.assertEqual(intent, "Added PR metadata flow end-to-end")
+
 
 if __name__ == "__main__":
     unittest.main()

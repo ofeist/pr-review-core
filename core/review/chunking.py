@@ -303,7 +303,16 @@ def _clean_intent_text(text: str) -> str:
             continue
         lines.append(line)
 
-    return _normalize_ws(" ".join(lines))
+    compact = _normalize_ws(" ".join(lines))
+    compact = re.sub(
+        r"^(what was implemented|implementation summary|summary)\s*[:\-]+\s*",
+        "",
+        compact,
+        flags=re.I,
+    )
+    compact = re.sub(r"\s*-\s*$", "", compact)
+    compact = _normalize_ws(compact)
+    return compact
 
 
 def _first_sentence(text: str) -> str:
