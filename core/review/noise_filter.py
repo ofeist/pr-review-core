@@ -111,6 +111,9 @@ CI_META_KEYWORDS = {
     "pip",
     "cache",
     "caching",
+    "test coverage",
+    "coverage",
+    "tests",
 }
 
 SPECULATIVE_MARKERS = {
@@ -205,6 +208,8 @@ def _filter_findings(findings: List[str]) -> List[str]:
             continue
         if _is_ci_meta_comment(text):
             continue
+        if _is_test_coverage_affirmation(text):
+            continue
         if _is_incomplete_fragment(text):
             continue
         if _is_non_actionable_affirmation(text):
@@ -277,6 +282,18 @@ def _is_meta_comment(text: str) -> bool:
 
 def _is_ci_meta_comment(text: str) -> bool:
     return _contains_any(text, CI_META_KEYWORDS)
+
+
+def _is_test_coverage_affirmation(text: str) -> bool:
+    lowered = text.lower()
+    coverage_markers = (
+        "test coverage",
+        "coverage across",
+        "tests cover",
+        "guard against regress",
+        "ensures the new features behave as intended",
+    )
+    return any(marker in lowered for marker in coverage_markers)
 
 
 def _is_incomplete_fragment(text: str) -> bool:
