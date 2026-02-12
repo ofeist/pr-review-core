@@ -37,19 +37,19 @@ Out of scope:
 Raw diff input:
 
 ```bash
-git diff origin/main...HEAD | python -m core.review.cli --input-format raw --adapter fake
+PYTHONPATH=src git diff origin/main...HEAD | python -m core.review.cli --input-format raw --adapter fake
 ```
 
 Parsed JSON input:
 
 ```bash
-git diff origin/main...HEAD | python -m core.diff.cli | python -m core.review.cli --input-format parsed-json --adapter fake
+PYTHONPATH=src git diff origin/main...HEAD | python -m core.diff.cli | python -m core.review.cli --input-format parsed-json --adapter fake
 ```
 
 From file:
 
 ```bash
-python -m core.review.cli --input-format raw --from-file path/to/diff.txt --adapter fake
+PYTHONPATH=src python -m core.review.cli --input-format raw --from-file path/to/diff.txt --adapter fake
 ```
 
 Useful flags:

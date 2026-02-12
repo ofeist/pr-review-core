@@ -8,7 +8,8 @@ Break **Phase 4 - Packaging and Distribution Readiness** into small, end-to-end 
 - Evidence: contract freeze documented in `ops/IMPLEMENTATION-GUARDRAILS.md` and baseline review suite green (`60 tests`).
 - Slice 1: done
 - Evidence: `pyproject.toml` added, version baseline `0.1.0`, wheel build succeeded, wheel install/import smoke check passed.
-- Slice 2: pending
+- Slice 2: done
+- Evidence: package code moved to `src/core`, `pyproject.toml` discovery updated to `where = ["src"]`, review suite passed (`60 tests`), and `make smoke-package` passed.
 - Slice 3: pending
 - Slice 4: pending
 - Slice 5: pending

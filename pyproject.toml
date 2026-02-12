@@ -18,4 +18,5 @@ dependencies = []
 openai = ["openai>=1.0.0"]
 
 [tool.setuptools.packages.find]
+where = ["src"]
 include = ["core*"]
