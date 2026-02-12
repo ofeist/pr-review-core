@@ -165,6 +165,19 @@ class NoiseFilterTest(unittest.TestCase):
         self.assertNotIn("correctly produces", output)
         self.assertNotIn("improving resilience", output)
 
+    def test_filters_negated_breaking_statement_from_real_output(self) -> None:
+        raw = (
+            "## AI Review\n\n"
+            "### Summary\n"
+            "Reviewed 1 chunk(s). Kept 1 unique finding(s).\n\n"
+            "### Findings\n"
+            "- The new build_change_summary function and its integration enhance readability and add useful neutral context about changed files and counts without breaking compatibility.\n"
+        )
+
+        output = filter_review_markdown(raw)
+        self.assertIn("- No issues found.", output)
+        self.assertNotIn("without breaking compatibility", output)
+
 
 if __name__ == "__main__":
     unittest.main()

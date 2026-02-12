@@ -209,6 +209,8 @@ def _filter_findings(findings: List[str]) -> List[str]:
             continue
         if _is_non_actionable_affirmation(text):
             continue
+        if _is_negated_risk_statement(text):
+            continue
         if _is_positive_quality_statement(text):
             continue
         if _is_non_actionable_without_explicit_risk(text):
@@ -306,6 +308,21 @@ def _is_non_actionable_affirmation(text: str) -> bool:
 
 def _is_positive_quality_statement(text: str) -> bool:
     return _contains_any(text, POSITIVE_QUALITY_KEYWORDS)
+
+
+def _is_negated_risk_statement(text: str) -> bool:
+    lowered = text.lower()
+    negation_patterns = (
+        "without breaking",
+        "without regress",
+        "without security",
+        "no security",
+        "no performance",
+        "no breaking",
+        "no regress",
+        "no concerns",
+    )
+    return any(pattern in lowered for pattern in negation_patterns)
 
 
 def _is_non_actionable_without_explicit_risk(text: str) -> bool:
