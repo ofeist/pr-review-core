@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import List
+from typing import List, Optional
 
 from core.diff.types import Change, DiffFile, DiffHunk
 
@@ -47,7 +47,59 @@ def chunk_diff_files(files: List[DiffFile], max_changes_per_chunk: int = 200) ->
     return chunks or [[]]
 
 
-def merge_chunk_markdowns(markdowns: List[str]) -> str:
+def build_change_summary(files: List[DiffFile], max_files: int = 8) -> List[str]:
+    """Build deterministic, neutral change-summary bullets from parsed diff."""
+
+    if not files:
+        return ["- No changed files detected."]
+
+    lines: List[str] = []
+    for file_obj in sorted(files, key=lambda f: f.path)[:max_files]:
+        additions = 0
+        removals = 0
+        for hunk in file_obj.hunks:
+            for change in hunk.changes:
+                if change.type.value == "add":
+                    additions += 1
+                elif change.type.value == "remove":
+                    removals += 1
+        lines.append(f"- `{file_obj.path}` (+{additions}/-{removals}, hunks: {len(file_obj.hunks)})")
+
+    hidden_count = max(0, len(files) - max_files)
+    if hidden_count:
+        lines.append(f"- {hidden_count} additional file(s) changed.")
+
+    return lines
+
+
+def build_pr_summary(files: List[DiffFile], max_files: int = 3) -> str:
+    """Build one-line PR-oriented summary text for the markdown Summary section."""
+
+    if not files:
+        return "No changed files detected."
+
+    sorted_paths = [f.path for f in sorted(files, key=lambda f: f.path)]
+    visible_paths = sorted_paths[:max_files]
+    hidden_count = max(0, len(sorted_paths) - len(visible_paths))
+
+    if len(sorted_paths) == 1:
+        summary = f"Changed 1 file: `{visible_paths[0]}`."
+    else:
+        visible = ", ".join(f"`{path}`" for path in visible_paths)
+        summary = f"Changed {len(sorted_paths)} files: {visible}."
+
+    if hidden_count:
+        summary += f" (+{hidden_count} more)"
+
+    return summary
+
+
+def merge_chunk_markdowns(
+    markdowns: List[str],
+    *,
+    change_summary_lines: Optional[List[str]] = None,
+    summary_prefix: Optional[str] = None,
+) -> str:
     """Merge chunk-level markdown results into one deterministic review."""
 
     findings: List[str] = []
@@ -63,9 +115,10 @@ def merge_chunk_markdowns(markdowns: List[str]) -> str:
 
     chunk_count = len(markdowns)
     if findings:
-        summary = f"Reviewed {chunk_count} chunk(s). Kept {len(findings)} unique finding(s)."
+        stats = f"Reviewed {chunk_count} chunk(s). Kept {len(findings)} unique finding(s)."
     else:
-        summary = f"Reviewed {chunk_count} chunk(s). No actionable findings after filtering."
+        stats = f"Reviewed {chunk_count} chunk(s). No actionable findings after filtering."
+    summary = f"{summary_prefix} {stats}".strip() if summary_prefix else stats
 
     out: List[str] = [
         "## AI Review",
@@ -73,8 +126,17 @@ def merge_chunk_markdowns(markdowns: List[str]) -> str:
         "### Summary",
         summary,
         "",
-        "### Findings",
+        "### Change Summary",
     ]
+    if change_summary_lines:
+        out.extend(change_summary_lines)
+    else:
+        out.append("- Not available.")
+
+    out.extend([
+        "",
+        "### Findings",
+    ])
 
     if findings:
         out.extend([f"- {item}" for item in findings])

@@ -61,6 +61,12 @@ def _extract_findings(text: str) -> List[str]:
     if findings:
         return findings
 
+    # Fallback: if section exists but bullets are missing, recover line items.
+    if section:
+        recovered = _extract_plain_findings(section)
+        if recovered:
+            return recovered
+
     # Fallback: take bullet lines from the whole output.
     findings = _extract_bullets(text)
     return findings
@@ -97,6 +103,18 @@ def _extract_bullets(text: str) -> List[str]:
         elif stripped.startswith("*"):
             items.append(stripped[1:].strip())
     return [item for item in items if item]
+
+
+def _extract_plain_findings(text: str) -> List[str]:
+    findings: List[str] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith("#"):
+            continue
+        findings.append(stripped)
+    return findings
 
 
 def _first_non_empty_line(text: str) -> str:

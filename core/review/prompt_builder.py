@@ -52,8 +52,13 @@ def build_review_prompt(
 
     lines.append("Output requirements:")
     lines.append("- Return markdown suitable for a PR comment.")
-    lines.append("- Include a concise summary and concrete findings.")
-    lines.append("- If no issues are found, say 'No issues found.' explicitly.")
+    lines.append("- Use exactly these headings:")
+    lines.append("  - `## AI Review`")
+    lines.append("  - `### Summary`")
+    lines.append("  - `### Findings`")
+    lines.append("- Under `### Findings`, output one finding per markdown bullet (`- ...`).")
+    lines.append("- Do not output plain-text finding lines without bullet markers.")
+    lines.append("- If no issues are found, include exactly one bullet: `- No issues found.`")
     lines.append("")
 
     lines.append("Parsed diff input:")
