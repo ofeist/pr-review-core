@@ -37,6 +37,7 @@ Out of scope right now:
 - `ops/versioning-policy.md`: version bump and compatibility policy
 - `ops/compatibility-policy.md`: CLI/markdown compatibility and deprecation rules
 - `ops/release-checklist.md`: release/tag checklist
+- `ops/phase-4-exit-validation.md`: Phase 4 readiness validation and handoff notes
 - `ops/consumer-integration.md`: consumer quickstart for GitHub/Bitbucket integration
 - `ops/IMPLEMENTATION-GUARDRAILS.md`: implementation boundaries and contract guardrails
 - `ops/done/phase-3-validation-checklist.md`: Phase 3 manual acceptance checklist
