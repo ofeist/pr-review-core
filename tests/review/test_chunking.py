@@ -160,6 +160,33 @@ class IntentSummaryTest(unittest.TestCase):
         )
         self.assertEqual(intent, "Added PR metadata flow end-to-end")
 
+    def test_prefers_body_when_title_looks_truncated(self) -> None:
+        intent = build_intent_summary(
+            pr_title="docs(validation): complete phase-4 slice-8 exit checklist and handoff…",
+            pr_body="docs(validation): complete phase-4 slice-8 exit checklist and handoff notes.",
+        )
+        self.assertEqual(
+            intent,
+            "docs(validation): complete phase-4 slice-8 exit checklist and handoff notes.",
+        )
+
+    def test_returns_not_provided_for_leading_ellipsis_title_without_body(self) -> None:
+        intent = build_intent_summary(
+            pr_title="…tle ends with ellipsis",
+            pr_body="",
+        )
+        self.assertEqual(intent, "Intent not provided.")
+
+    def test_trims_trailing_ellipsis_when_body_missing(self) -> None:
+        intent = build_intent_summary(
+            pr_title="docs(validation): complete phase-4 slice-8 exit checklist and handoff…",
+            pr_body="",
+        )
+        self.assertEqual(
+            intent,
+            "docs(validation): complete phase-4 slice-8 exit checklist and handoff",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

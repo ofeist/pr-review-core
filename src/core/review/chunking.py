@@ -103,7 +103,16 @@ def build_intent_summary(pr_title: str = "", pr_body: str = "", max_chars: int =
         return "Intent not provided."
 
     if title:
-        return _truncate(_first_sentence(title), max_chars)
+        # If title already looks visually truncated by upstream UI, prefer body.
+        if _looks_truncated_title(title):
+            if body:
+                return _truncate(_first_sentence(body), max_chars)
+            # A leading ellipsis means we lost the beginning of the title.
+            if _starts_with_ellipsis(title):
+                return "Intent not provided."
+            # If only the tail is truncated, keep a cleaned title without trailing ellipsis.
+            return _truncate(_trim_trailing_ellipsis(title), max_chars)
+        return _truncate(title, max_chars)
 
     return _truncate(_first_sentence(body), max_chars)
 
@@ -325,3 +334,23 @@ def _first_sentence(text: str) -> str:
     if match:
         return match.group(1).strip()
     return text
+
+
+def _looks_truncated_title(title: str) -> bool:
+    normalized = title.strip()
+    return (
+        normalized.endswith("...")
+        or normalized.endswith("…")
+        or normalized.startswith("...")
+        or normalized.startswith("…")
+    )
+
+
+def _starts_with_ellipsis(text: str) -> bool:
+    normalized = text.strip()
+    return normalized.startswith("...") or normalized.startswith("…")
+
+
+def _trim_trailing_ellipsis(text: str) -> str:
+    trimmed = re.sub(r"(?:\.\.\.|…)\s*$", "", text.strip())
+    return _normalize_ws(trimmed)
