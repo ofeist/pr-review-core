@@ -105,6 +105,21 @@ class NoiseFilterTest(unittest.TestCase):
         self.assertNotIn("improves robustness", output)
         self.assertNotIn("Tests cover", output)
 
+    def test_filters_non_issue_and_praise_lines_from_real_output(self) -> None:
+        raw = (
+            "## AI Review\n\n"
+            "### Summary\n"
+            "Reviewed 1 chunk(s). Kept 2 unique finding(s).\n\n"
+            "### Findings\n"
+            "- The fallback in output_normalizer.py to recover plain lines in a findings section is a helpful robustness improvement to handle imperfectly formatted outputs, with relevant tests confirming expected behavior.\n"
+            "- There are no security, performance, or breaking changes introduced by these modifications.\n"
+        )
+
+        output = filter_review_markdown(raw)
+        self.assertIn("- No issues found.", output)
+        self.assertNotIn("helpful robustness improvement", output)
+        self.assertNotIn("There are no security, performance, or breaking changes", output)
+
 
 if __name__ == "__main__":
     unittest.main()
