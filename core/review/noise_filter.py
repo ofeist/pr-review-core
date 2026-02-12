@@ -66,6 +66,10 @@ PRAISE_KEYWORDS = {
     "backward compatible",
     "non-breaking",
     "non breaking",
+    "backward compatibility",
+    "maintains backward compatibility",
+    "reduces false positives",
+    "ensures only comments",
 }
 
 META_KEYWORDS = {
@@ -269,6 +273,10 @@ def _is_incomplete_fragment(text: str) -> bool:
 def _is_non_actionable_affirmation(text: str) -> bool:
     lowered = text.lower().strip()
     if lowered.startswith("no ") and "issue" in lowered:
+        return True
+    if lowered.startswith("no ") and "security" in lowered and "performance" in lowered:
+        return True
+    if "no security, performance, or breaking change concerns" in lowered:
         return True
     if lowered.startswith("there are no ") and _contains_risk_signal(text):
         return True

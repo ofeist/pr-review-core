@@ -133,6 +133,23 @@ class NoiseFilterTest(unittest.TestCase):
         self.assertIn("- No issues found.", output)
         self.assertNotIn("non-breaking and backward compatible", output)
 
+    def test_filters_meta_quality_statements_from_real_output(self) -> None:
+        raw = (
+            "## AI Review\n\n"
+            "### Summary\n"
+            "Reviewed 1 chunk(s). Kept 3 unique finding(s).\n\n"
+            "### Findings\n"
+            "- The added filtering helper _is_non_actionable_without_risk_evidence() ensures only comments with risk signals or evidence remain, which reduces false positives in findings.\n"
+            "- The overall changes maintain backward compatibility as they only add filtering rules and fallback logic without modifying existing public interfaces or semantics.\n"
+            "- No security, performance, or breaking change concerns were found in this diff.\n"
+        )
+
+        output = filter_review_markdown(raw)
+        self.assertIn("- No issues found.", output)
+        self.assertNotIn("ensures only comments", output)
+        self.assertNotIn("maintain backward compatibility", output)
+        self.assertNotIn("No security, performance, or breaking change concerns", output)
+
 
 if __name__ == "__main__":
     unittest.main()
