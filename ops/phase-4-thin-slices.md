@@ -18,7 +18,8 @@ Break **Phase 4 - Packaging and Distribution Readiness** into small, end-to-end 
 - Evidence: added `ops/versioning-policy.md` (bump/deprecation rules), `ops/release-checklist.md` (tag/release runbook with dry-run steps), and `CHANGELOG.md` starter with `0.1.0` baseline.
 - Slice 6: done
 - Evidence: added `ops/consumer-integration.md` with install + quickstart + GitHub/Bitbucket interim usage, updated root `README.md` with consumer quickstart and guide link, and validated raw/parsed CLI commands against fixtures in isolated venv.
-- Slice 7: pending
+- Slice 7: done
+- Evidence: added `ops/compatibility-policy.md` with explicit CLI/markdown compatibility expectations and warn->grace->removal deprecation rules, plus regression tests in `tests/review/test_contract_compatibility.py` for required flags and heading order.
 - Slice 8: pending
 
 ## Phase 4 Goal (from roadmap)

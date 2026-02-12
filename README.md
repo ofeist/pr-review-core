@@ -35,6 +35,7 @@ Out of scope right now:
 - `ops/phase-4-thin-slices.md`: Phase 4 execution slices
 - `ops/phase-5-thin-slices.md`: Phase 5 execution slices
 - `ops/versioning-policy.md`: version bump and compatibility policy
+- `ops/compatibility-policy.md`: CLI/markdown compatibility and deprecation rules
 - `ops/release-checklist.md`: release/tag checklist
 - `ops/consumer-integration.md`: consumer quickstart for GitHub/Bitbucket integration
 - `ops/IMPLEMENTATION-GUARDRAILS.md`: implementation boundaries and contract guardrails
