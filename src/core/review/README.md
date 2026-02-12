@@ -33,6 +33,16 @@ Out of scope:
 - `pipeline.py`: full-first review flow + per-file fallback
 - `cli.py`: local/CI entrypoint
 
+## Install Matrix
+- Base/core only:
+  - `python -m pip install .`
+- With OpenAI adapter support:
+  - `python -m pip install ".[openai]"`
+
+Notes:
+- Base install supports `--adapter fake`.
+- `--adapter openai` requires `OPENAI_API_KEY` and installed OpenAI extra.
+
 ## CLI Usage
 Raw diff input:
 
