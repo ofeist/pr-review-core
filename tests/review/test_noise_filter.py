@@ -72,6 +72,22 @@ class NoiseFilterTest(unittest.TestCase):
         self.assertNotIn("Installing openai dependency in CI", output)
         self.assertIn("timeout_seconds <= 0", output)
 
+    def test_filters_non_actionable_affirmations(self) -> None:
+        raw = (
+            "## AI Review\n\n"
+            "### Summary\n"
+            "Review done.\n\n"
+            "### Findings\n"
+            "- No security issues, performance regressions, or breaking changes are evident.\n"
+            "- The new filtering logic remains maintainable and readable by using clear helper functions.\n"
+            "- Null dereference risk because token is used before user check.\n"
+        )
+
+        output = filter_review_markdown(raw)
+        self.assertNotIn("No security issues", output)
+        self.assertNotIn("maintainable and readable", output)
+        self.assertIn("Null dereference risk", output)
+
 
 if __name__ == "__main__":
     unittest.main()

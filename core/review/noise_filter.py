@@ -46,6 +46,16 @@ STYLE_KEYWORDS = {
     "prettier",
 }
 
+PRAISE_KEYWORDS = {
+    "useful heuristic",
+    "good guard",
+    "good improvement",
+    "maintainable and readable",
+    "well-named",
+    "clear helper functions",
+    "valuable",
+}
+
 META_KEYWORDS = {
     "ci",
     "pipeline",
@@ -170,6 +180,8 @@ def _filter_findings(findings: List[str]) -> List[str]:
             continue
         if _is_incomplete_fragment(text):
             continue
+        if _is_non_actionable_affirmation(text):
+            continue
         if _is_speculative_without_evidence(text):
             continue
 
@@ -238,6 +250,13 @@ def _is_incomplete_fragment(text: str) -> bool:
     lowered = text.lower().rstrip()
     incomplete_suffixes = (" to", " from", " because", " due to", " by", " with")
     return lowered.endswith(incomplete_suffixes)
+
+
+def _is_non_actionable_affirmation(text: str) -> bool:
+    lowered = text.lower().strip()
+    if lowered.startswith("no ") and "issue" in lowered:
+        return True
+    return _contains_any(text, PRAISE_KEYWORDS)
 
 
 def _dedupe_key(text: str) -> str:
