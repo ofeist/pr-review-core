@@ -27,6 +27,7 @@ Out of scope right now:
 - `src/core/diff/README.md`: diff parsing module contract
 - `src/core/review/README.md`: review module contract and CLI
 - `.github/workflows/ai-review.yml`: GitHub PR review workflow
+- `.github/workflows/package-smoke.yml`: package build/install/smoke validation workflow
 - `adapters/github/README.md`: GitHub adapter runbook
 - `adapters/github/scripts/extract_pr_diff.py`: robust PR diff extraction script
 - `ops/ROADMAP.md`: project roadmap

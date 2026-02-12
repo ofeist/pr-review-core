@@ -1,0 +1,77 @@
+name: Package Smoke
+
+on:
+  pull_request:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  package-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip build
+          python -m build
+
+      - name: Install built wheel
+        id: install
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv-ci
+          . .venv-ci/bin/activate
+          wheel_path=$(ls dist/*.whl | head -n 1)
+          echo "wheel_path=$wheel_path" >> "$GITHUB_OUTPUT"
+          pip install --force-reinstall "$wheel_path"
+
+      - name: CLI smoke on fixture diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          . .venv-ci/bin/activate
+          tmp_dir=$(mktemp -d)
+          cp tests/review/fixtures/raw_small.diff "$tmp_dir/raw_small.diff"
+          cd "$tmp_dir"
+
+          python -m core.review.cli \
+            --input-format raw \
+            --from-file raw_small.diff \
+            --adapter fake \
+            > review.md
+
+          grep -q '^## AI Review' review.md
+          grep -q '^### Summary' review.md
+          grep -q '^### Intent' review.md
+          grep -q '^### Change Summary' review.md
+          grep -q '^### Findings' review.md
+
+          cp review.md "$GITHUB_WORKSPACE/review-smoke.md"
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-dist
+          path: dist/*
+          if-no-files-found: error
+
+      - name: Upload smoke output
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-smoke-review
+          path: review-smoke.md
+          if-no-files-found: error

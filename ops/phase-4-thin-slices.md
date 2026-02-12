@@ -12,7 +12,8 @@ Break **Phase 4 - Packaging and Distribution Readiness** into small, end-to-end 
 - Evidence: package code moved to `src/core`, `pyproject.toml` discovery updated to `where = ["src"]`, review suite passed (`60 tests`), and `make smoke-package` passed.
 - Slice 3: done
 - Evidence: install matrix documented (`pip install .` and `pip install ".[openai]"`), optional dependency behavior covered by adapter test for missing `openai` package, and review suite remains green.
-- Slice 4: pending
+- Slice 4: done
+- Evidence: added `.github/workflows/package-smoke.yml` (PR/tag/manual), validates build/install and fixture-driven CLI smoke output shape, uploads `dist/*` and smoke markdown artifacts, and local smoke/tests passed (`make smoke-package`, review suite `61 tests`).
 - Slice 5: pending
 - Slice 6: pending
 - Slice 7: pending
