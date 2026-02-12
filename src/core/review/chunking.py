@@ -105,7 +105,7 @@ def build_intent_summary(pr_title: str = "", pr_body: str = "", max_chars: int =
     if title:
         # If title already looks visually truncated by upstream UI, prefer body.
         if _looks_truncated_title(title):
-            if body:
+            if body and not _looks_truncated_title(body):
                 return _truncate(_first_sentence(body), max_chars)
             # A leading ellipsis means we lost the beginning of the title.
             if _starts_with_ellipsis(title):

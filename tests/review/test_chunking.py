@@ -177,6 +177,13 @@ class IntentSummaryTest(unittest.TestCase):
         )
         self.assertEqual(intent, "Intent not provided.")
 
+    def test_returns_not_provided_when_title_and_body_look_truncated(self) -> None:
+        intent = build_intent_summary(
+            pr_title="…tle ends with ellipsis",
+            pr_body="…tle ends with ellipsis",
+        )
+        self.assertEqual(intent, "Intent not provided.")
+
     def test_trims_trailing_ellipsis_when_body_missing(self) -> None:
         intent = build_intent_summary(
             pr_title="docs(validation): complete phase-4 slice-8 exit checklist and handoff…",
