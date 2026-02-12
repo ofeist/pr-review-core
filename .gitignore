@@ -7,3 +7,4 @@ dist/
 .venv/
 .venv-smoke/
 .venv-consumer/
+.venv-exit/
