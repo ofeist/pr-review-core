@@ -72,6 +72,17 @@ PRAISE_KEYWORDS = {
     "ensures only comments",
 }
 
+POSITIVE_QUALITY_KEYWORDS = {
+    "correctly produces",
+    "enhances review clarity",
+    "improving resilience",
+    "addresses imperfect formatting gracefully",
+    "without causing breaking changes",
+    "without introducing breaking changes",
+    "non-breaking",
+    "backward compatible",
+}
+
 META_KEYWORDS = {
     "ci",
     "pipeline",
@@ -198,6 +209,8 @@ def _filter_findings(findings: List[str]) -> List[str]:
             continue
         if _is_non_actionable_affirmation(text):
             continue
+        if _is_positive_quality_statement(text):
+            continue
         if _is_non_actionable_without_risk_evidence(text):
             continue
         if _is_speculative_without_evidence(text):
@@ -289,6 +302,10 @@ def _is_non_actionable_affirmation(text: str) -> bool:
     if lowered.startswith("the fallback in") and ("improvement" in lowered or "helpful" in lowered):
         return True
     return _contains_any(text, PRAISE_KEYWORDS)
+
+
+def _is_positive_quality_statement(text: str) -> bool:
+    return _contains_any(text, POSITIVE_QUALITY_KEYWORDS)
 
 
 def _has_evidence_signal(text: str) -> bool:

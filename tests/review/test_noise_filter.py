@@ -150,6 +150,21 @@ class NoiseFilterTest(unittest.TestCase):
         self.assertNotIn("maintain backward compatibility", output)
         self.assertNotIn("No security, performance, or breaking change concerns", output)
 
+    def test_filters_positive_quality_findings_from_latest_real_output(self) -> None:
+        raw = (
+            "## AI Review\n\n"
+            "### Summary\n"
+            "Reviewed 1 chunk(s). Kept 2 unique finding(s).\n\n"
+            "### Findings\n"
+            "- The new build_change_summary function correctly produces a concise and deterministic summary of changed files, additions, removals, and hunks capped by max_files, which enhances review clarity without causing breaking changes.\n"
+            "- The fallback logic in output_normalizer.py to recover plain lines as bullet findings inside the findings section addresses imperfect formatting gracefully, improving resilience to malformed model outputs.\n"
+        )
+
+        output = filter_review_markdown(raw)
+        self.assertIn("- No issues found.", output)
+        self.assertNotIn("correctly produces", output)
+        self.assertNotIn("improving resilience", output)
+
 
 if __name__ == "__main__":
     unittest.main()
