@@ -5,7 +5,8 @@ Break **Phase 4 - Packaging and Distribution Readiness** into small, end-to-end 
 
 ## Status
 - Slice 0: done
-- Slice 1: pending
+- Slice 1: done
+- Evidence: `pyproject.toml` added, version baseline `0.1.0`, wheel build succeeded, wheel install/import smoke check passed.
 - Slice 2: pending
 - Slice 3: pending
 - Slice 4: pending
@@ -54,20 +55,22 @@ Tests:
 Done when:
 - Package builds and installs without manual patching.
 
-### Slice 2 - Console Entrypoint
-Objective: provide ergonomic command for edge/CI usage.
+### Slice 2 - `src/` Layout Migration
+Objective: move package code to `src/core` to prevent accidental imports from repository root.
 
 Deliverables:
-- Add console script entrypoint (for example `pr-review`).
-- Map entrypoint to current review CLI behavior.
-- Keep existing module invocation backward-compatible.
+- Move package code from `core/` to `src/core/`.
+- Update packaging discovery to `where = ["src"]`.
+- Keep CLI/module behavior unchanged for consumers.
+- Update tests/tooling paths as needed without changing functional expectations.
 
 Tests:
-- Smoke test: `pr-review --help`.
-- Fixture smoke test through entrypoint.
+- Full existing review test suite passes after migration.
+- Package build/install smoke still passes from the new layout.
+- Import smoke verifies installed package usage (not root-folder leakage).
 
 Done when:
-- CI can call package command directly after install.
+- Repository uses `src/` layout and all previous tests still pass with no behavior regression.
 
 ### Slice 3 - Dependency and Extras Model
 Objective: separate core install from optional provider/model dependencies.
