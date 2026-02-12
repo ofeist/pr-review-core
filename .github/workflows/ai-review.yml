@@ -28,6 +28,13 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install openai
+
       - name: Resolve adapter mode
         id: adapter
         shell: bash
