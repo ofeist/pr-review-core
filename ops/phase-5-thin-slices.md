@@ -1,5 +1,9 @@
 ﻿# Phase 5 Thin Slices
 
+Status note:
+- Active execution queue is `ops/next-thin-slices.md` (phase-agnostic).
+- This file remains the Phase 5-specific draft and mapping reference.
+
 ## Purpose
 Break **Phase 5 - GitHub App & Commercial Readiness** into small, end-to-end slices that move from workflow-only automation to product-grade GitHub App architecture.
 

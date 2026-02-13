@@ -3,6 +3,10 @@
 ## Vision
 Build a platform-agnostic AI PR review engine that starts GitHub-first for fastest adoption, then adds Bitbucket integration for enterprise differentiation.
 
+## Execution Note
+- `ops/ROADMAP.md` defines strategic phase milestones.
+- Active implementation ordering lives in `ops/next-thin-slices.md` (phase-agnostic execution queue).
+
 ## Current State (as found in this repo)
 - Core diff module exists in `core/diff`:
 - `types.py` defines canonical dataclasses (`DiffFile`, `DiffHunk`, `Change`, `ChangeType`).

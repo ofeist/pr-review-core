@@ -33,7 +33,8 @@ Out of scope right now:
 - `CHANGELOG.md`: release notes and user-visible changes
 - `ops/ROADMAP.md`: project roadmap
 - `ops/done/phase-4-thin-slices.md`: Phase 4 execution slices (completed)
-- `ops/phase-5-thin-slices.md`: Phase 5 execution slices
+- `ops/next-thin-slices.md`: active execution queue (phase-agnostic)
+- `ops/phase-5-thin-slices.md`: Phase 5 draft slices
 - `ops/versioning-policy.md`: version bump and compatibility policy
 - `ops/compatibility-policy.md`: CLI/markdown compatibility and deprecation rules
 - `ops/release-checklist.md`: release/tag checklist
