@@ -1,6 +1,7 @@
 import os
 import unittest
 from types import SimpleNamespace
+from urllib.error import URLError
 from urllib.parse import urlparse
 from unittest.mock import patch
 
@@ -282,6 +283,57 @@ class OpenAICompatAdapterRuntimeTest(unittest.TestCase):
         body = request.data.decode("utf-8")
         self.assertIn('"model": "qwen3:32b"', body)
         self.assertIn('"prompt": "prompt text"', body)
+
+    def test_generate_review_fallback_wraps_timeout_error(self) -> None:
+        responses_api = _FakeResponsesApi(response_to_return=SimpleNamespace(output_text=""))
+        adapter = OpenAICompatModelAdapter(
+            base_url="http://localhost:11434/v1",
+            model="qwen3:32b",
+            client=_FakeClient(responses_api),
+        )
+
+        with patch.dict(os.environ, {"OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK": "1"}, clear=False):
+            with patch(
+                "core.review.adapters.openai_compat_adapter.urllib.request.urlopen",
+                side_effect=TimeoutError("timed out"),
+            ):
+                with self.assertRaises(AdapterRuntimeError) as ctx:
+                    adapter.generate_review("prompt text")
+        self.assertIn("Ollama fallback request failed:", str(ctx.exception))
+        self.assertIn("timed out", str(ctx.exception))
+
+    def test_generate_review_fallback_wraps_and_redacts_error_text(self) -> None:
+        responses_api = _FakeResponsesApi(response_to_return=SimpleNamespace(output_text=""))
+        adapter = OpenAICompatModelAdapter(
+            base_url="http://localhost:11434/v1",
+            model="qwen3:32b",
+            api_key="test-key",
+            client=_FakeClient(responses_api),
+        )
+
+        leaked = "network fail api_key=test-key OPENAI_API_KEY=shared-key Bearer sk-abc123"
+        with patch.dict(
+            os.environ,
+            {
+                "OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK": "1",
+                "OPENAI_API_KEY": "shared-key",
+            },
+            clear=False,
+        ):
+            with patch(
+                "core.review.adapters.openai_compat_adapter.urllib.request.urlopen",
+                side_effect=URLError(leaked),
+            ):
+                with self.assertRaises(AdapterRuntimeError) as ctx:
+                    adapter.generate_review("prompt text")
+
+        message = str(ctx.exception)
+        self.assertIn("Ollama fallback request failed:", message)
+        self.assertNotIn("test-key", message)
+        self.assertNotIn("shared-key", message)
+        self.assertNotIn("sk-abc123", message)
+        self.assertIn("api_key=***", message)
+        self.assertIn("Bearer ***", message)
 
 
 if __name__ == "__main__":
