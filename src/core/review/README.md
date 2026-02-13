@@ -36,12 +36,14 @@ Out of scope:
 ## Install Matrix
 - Base/core only:
   - `python -m pip install .`
-- With OpenAI adapter support:
+- With OpenAI and OpenAI-compatible adapter support:
   - `python -m pip install ".[openai]"`
 
 Notes:
 - Base install supports `--adapter fake`.
 - `--adapter openai` requires `OPENAI_API_KEY` and installed OpenAI extra.
+- `--adapter openai-compat` requires `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_MODEL`, and installed OpenAI extra.
+- `OPENAI_COMPAT_API_KEY` is optional and provider-specific.
 
 ## CLI Usage
 Raw diff input:
@@ -63,7 +65,7 @@ PYTHONPATH=src python -m core.review.cli --input-format raw --from-file path/to/
 ```
 
 Useful flags:
-- `--adapter fake|openai`
+- `--adapter fake|openai|openai-compat`
 - `--max-changes-per-chunk <int>`
 - `--fallback-mode on|off`
 - `--repository`, `--base-ref`, `--head-ref`
@@ -75,6 +77,20 @@ Required for `--adapter openai`:
 Optional:
 - `OPENAI_MODEL` (default: `gpt-4.1-mini`)
 - `OPENAI_TIMEOUT_SECONDS` (default: `30`)
+
+## OpenAI-Compatible Configuration
+Required for `--adapter openai-compat`:
+- `OPENAI_COMPAT_BASE_URL`
+- `OPENAI_COMPAT_MODEL`
+
+Optional:
+- `OPENAI_COMPAT_API_KEY` (required by some providers)
+- `OPENAI_COMPAT_TIMEOUT_SECONDS` (default: `30`)
+
+Example providers:
+- Hosted OpenAI-compatible APIs: set provider `.../v1` URL + model identifier.
+- Self-hosted vLLM: `OPENAI_COMPAT_BASE_URL=http://<host>:8000/v1`.
+- Local gateway: `OPENAI_COMPAT_BASE_URL=http://localhost:11434/v1`.
 
 ## Exit Codes
 - `0`: success

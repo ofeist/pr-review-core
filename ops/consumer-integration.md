@@ -8,7 +8,7 @@ Choose one installation mode.
 
 - From local checkout (development):
   - `python -m pip install .`
-- With OpenAI adapter support:
+- With OpenAI/OpenAI-compatible adapter support:
   - `python -m pip install ".[openai]"`
 - From a tagged GitHub release:
   - `python -m pip install "git+https://github.com/ofeist/pr-review-core.git@v0.1.0"`
@@ -66,6 +66,31 @@ python -m pip install "git+https://github.com/ofeist/pr-review-core.git@v0.1.0#e
 
 Required secret:
 - `OPENAI_API_KEY`
+
+For `openai-compat` mode, set:
+- `OPENAI_COMPAT_BASE_URL`
+- `OPENAI_COMPAT_MODEL`
+- `OPENAI_COMPAT_API_KEY` (optional; provider-specific)
+
+Examples:
+
+```bash
+# Hosted OpenAI-compatible provider
+OPENAI_COMPAT_BASE_URL="https://api.example.ai/v1" \
+OPENAI_COMPAT_MODEL="provider/model-name" \
+OPENAI_COMPAT_API_KEY="..." \
+python -m core.review.cli --input-format raw --from-file artifacts/pr.diff --adapter openai-compat
+
+# Self-hosted vLLM
+OPENAI_COMPAT_BASE_URL="http://vllm.internal:8000/v1" \
+OPENAI_COMPAT_MODEL="Qwen/Qwen2.5-Coder-7B-Instruct" \
+python -m core.review.cli --input-format raw --from-file artifacts/pr.diff --adapter openai-compat
+
+# Local gateway (Ollama-compatible endpoint)
+OPENAI_COMPAT_BASE_URL="http://localhost:11434/v1" \
+OPENAI_COMPAT_MODEL="qwen2.5-coder" \
+python -m core.review.cli --input-format raw --from-file artifacts/pr.diff --adapter openai-compat
+```
 
 ## 4. Bitbucket Interim Integration (Script/API Wrapper)
 

@@ -47,12 +47,14 @@ Out of scope right now:
 ## Install Matrix
 - Base/core only:
   - `python -m pip install .`
-- With OpenAI adapter support:
+- With OpenAI and OpenAI-compatible adapter support:
   - `python -m pip install ".[openai]"`
 
 Notes:
 - Base install is sufficient for `--adapter fake`.
 - `--adapter openai` requires both `OPENAI_API_KEY` and the `openai` extra.
+- `--adapter openai-compat` requires `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_MODEL`, and the `openai` extra.
+- `OPENAI_COMPAT_API_KEY` is optional (required by some providers).
 
 For package validation steps, see `ops/package-testing.md`.
 
@@ -85,6 +87,33 @@ PYTHONPATH=src git diff origin/main...HEAD | python -m core.diff.cli | python -m
 ```
 
 For installed-package workflows (including direct stdin from `git diff`), see `ops/package-testing.md`.
+
+## OpenAI-Compatible Examples
+
+Hosted OpenAI-compatible provider:
+
+```bash
+export OPENAI_COMPAT_BASE_URL="https://api.example.ai/v1"
+export OPENAI_COMPAT_MODEL="provider/model-name"
+export OPENAI_COMPAT_API_KEY="..."
+python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapter openai-compat
+```
+
+Self-hosted vLLM:
+
+```bash
+export OPENAI_COMPAT_BASE_URL="http://vllm.internal:8000/v1"
+export OPENAI_COMPAT_MODEL="Qwen/Qwen2.5-Coder-7B-Instruct"
+python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapter openai-compat
+```
+
+Local gateway (Ollama-compatible OpenAI endpoint):
+
+```bash
+export OPENAI_COMPAT_BASE_URL="http://localhost:11434/v1"
+export OPENAI_COMPAT_MODEL="qwen2.5-coder"
+python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapter openai-compat
+```
 
 ## GitHub Actions Setup (Phase 3 MVP)
 Workflow file:
