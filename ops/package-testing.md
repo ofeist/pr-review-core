@@ -195,12 +195,39 @@ python -m core.review.cli \
   --adapter openai-compat
 ```
 
+Example: enable opt-in fallback to native Ollama when `responses` output is empty
+
+```bash
+export OPENAI_COMPAT_BASE_URL="http://localhost:11434/v1"
+export OPENAI_COMPAT_MODEL="qwen3:32b"
+export OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK="1"
+python -m core.review.cli \
+  --input-format raw \
+  --from-file tests/review/fixtures/raw_small.diff \
+  --adapter openai-compat
+```
+
+## Optional Ollama Native Path
+
+Use this when you want direct `/api/generate` behavior:
+
+```bash
+export OLLAMA_BASE_URL="http://localhost:11434"
+export OLLAMA_MODEL="qwen3:32b"
+python -m core.review.cli \
+  --input-format raw \
+  --from-file tests/review/fixtures/raw_small.diff \
+  --adapter ollama
+```
+
 ## Common Issues
 
 - `Unknown adapter 'openai'. Known adapters: fake`
   - OpenAI extra or env config is missing.
 - `Unknown adapter 'openai-compat'. Known adapters: ...`
   - `OPENAI_COMPAT_BASE_URL`/`OPENAI_COMPAT_MODEL` or OpenAI extra is missing.
+- `Unknown adapter 'ollama'. Known adapters: ...`
+  - `OLLAMA_BASE_URL` or `OLLAMA_MODEL` is missing.
 - Output works from repo root but fails after install
   - run smoke from a temp directory to avoid import leakage.
 - Missing build tools

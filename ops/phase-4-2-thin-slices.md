@@ -14,7 +14,8 @@ Unblock local/self-hosted usage where `/v1/responses` is reachable but returns e
 - Evidence: added `src/core/review/adapters/ollama_adapter.py` with strict env validation for `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, and `OLLAMA_TIMEOUT_SECONDS`; added config validation coverage in `tests/review/test_ollama_adapter.py`; full review suite passed (`96 tests`).
 - Slice 4: done
 - Evidence: registered `ollama` adapter in `src/core/review/pipeline.py`; added CLI adapter selection regression in `tests/review/test_cli.py`; added adapter-registry presence and known-adapter error coverage for `ollama` in `tests/review/test_model_adapter.py`; full review suite passed (`99 tests`).
-- Slice 5: pending
+- Slice 5: done
+- Evidence: updated adapter-selection and usage docs in `README.md`, `src/core/review/README.md`, `ops/package-testing.md`, and `ops/consumer-integration.md` to distinguish `openai-compat` vs `ollama`, including `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK` behavior and native `ollama` examples; sanity-ran documented `openai-compat`/`ollama` command paths in current environment.
 - Slice 6: pending
 
 ## Phase 4.2 Goal

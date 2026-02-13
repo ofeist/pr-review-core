@@ -54,9 +54,11 @@ Out of scope right now:
 
 Notes:
 - Base install is sufficient for `--adapter fake`.
+- Base install is sufficient for `--adapter ollama`.
 - `--adapter openai` requires both `OPENAI_API_KEY` and the `openai` extra.
 - `--adapter openai-compat` requires `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_MODEL`, and the `openai` extra.
 - `OPENAI_COMPAT_API_KEY` is optional (required by some providers).
+- `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK=1` enables opt-in fallback from empty `responses` output to native Ollama `/api/generate`.
 
 For package validation steps, see `ops/package-testing.md`.
 
@@ -115,6 +117,25 @@ Local gateway (Ollama-compatible OpenAI endpoint):
 export OPENAI_COMPAT_BASE_URL="http://localhost:11434/v1"
 export OPENAI_COMPAT_MODEL="qwen2.5-coder"
 python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapter openai-compat
+```
+
+OpenAI-compatible with explicit Ollama fallback enabled:
+
+```bash
+export OPENAI_COMPAT_BASE_URL="http://localhost:11434/v1"
+export OPENAI_COMPAT_MODEL="qwen3:32b"
+export OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK="1"
+python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapter openai-compat
+```
+
+## Ollama Native Example
+
+Use `ollama` adapter when you want direct native `/api/generate` behavior:
+
+```bash
+export OLLAMA_BASE_URL="http://localhost:11434"
+export OLLAMA_MODEL="qwen3:32b"
+python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapter ollama
 ```
 
 ## GitHub Actions Setup (Phase 3 MVP)

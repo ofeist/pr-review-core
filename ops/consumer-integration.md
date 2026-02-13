@@ -71,6 +71,7 @@ For `openai-compat` mode, set:
 - `OPENAI_COMPAT_BASE_URL`
 - `OPENAI_COMPAT_MODEL`
 - `OPENAI_COMPAT_API_KEY` (optional; provider-specific)
+- `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK=1` (optional opt-in fallback to native Ollama when `responses` output is empty)
 
 Examples:
 
@@ -90,6 +91,24 @@ python -m core.review.cli --input-format raw --from-file artifacts/pr.diff --ada
 OPENAI_COMPAT_BASE_URL="http://localhost:11434/v1" \
 OPENAI_COMPAT_MODEL="qwen2.5-coder" \
 python -m core.review.cli --input-format raw --from-file artifacts/pr.diff --adapter openai-compat
+
+# Local gateway with explicit fallback enabled
+OPENAI_COMPAT_BASE_URL="http://localhost:11434/v1" \
+OPENAI_COMPAT_MODEL="qwen3:32b" \
+OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK="1" \
+python -m core.review.cli --input-format raw --from-file artifacts/pr.diff --adapter openai-compat
+```
+
+For native Ollama mode, set:
+- `OLLAMA_BASE_URL`
+- `OLLAMA_MODEL`
+
+Example:
+
+```bash
+OLLAMA_BASE_URL="http://localhost:11434" \
+OLLAMA_MODEL="qwen3:32b" \
+python -m core.review.cli --input-format raw --from-file artifacts/pr.diff --adapter ollama
 ```
 
 ## 4. Bitbucket Interim Integration (Script/API Wrapper)
