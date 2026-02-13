@@ -83,6 +83,8 @@ Parsed JSON review:
 PYTHONPATH=src git diff origin/main...HEAD | python -m core.diff.cli | python -m core.review.cli --input-format parsed-json --adapter fake
 ```
 
+For installed-package workflows (including direct stdin from `git diff`), see `ops/package-testing.md`.
+
 ## GitHub Actions Setup (Phase 3 MVP)
 Workflow file:
 - `.github/workflows/ai-review.yml`

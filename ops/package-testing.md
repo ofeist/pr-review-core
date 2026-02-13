@@ -64,6 +64,20 @@ python -m core.review.cli \
   --adapter fake
 ```
 
+### 5. Run directly from `git diff` (very useful in real repos)
+
+Review branch diff against main:
+
+```bash
+git diff origin/main...HEAD | python -m core.review.cli --input-format raw --adapter fake
+```
+
+Review only local uncommitted changes:
+
+```bash
+git diff | python -m core.review.cli --input-format raw --adapter fake
+```
+
 ## Optional OpenAI Path
 
 Install with extras and set secret:
