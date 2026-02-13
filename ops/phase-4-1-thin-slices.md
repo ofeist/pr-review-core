@@ -10,7 +10,8 @@ Break implementation of an OpenAI-compatible model adapter into small, testable 
 - Evidence: added `src/core/review/adapters/openai_compat_adapter.py` with strict env parsing and timeout validation; added `tests/review/test_openai_compat_adapter.py` config/runtime validation tests.
 - Slice 2: done
 - Evidence: implemented `generate_review()` request path and response extraction (`output_text` + structured fallback), with request-payload/runtime/empty-response tests in `tests/review/test_openai_compat_adapter.py`.
-- Slice 3: pending
+- Slice 3: done
+- Evidence: registered `openai-compat` in `src/core/review/pipeline.py`; added CLI adapter selection regression in `tests/review/test_cli.py`; added adapter-registry presence and unknown-adapter message coverage in `tests/review/test_model_adapter.py`.
 - Slice 4: pending
 - Slice 5: pending
 - Slice 6: pending
