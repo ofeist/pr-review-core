@@ -5,6 +5,10 @@ from typing import Dict, List, Optional
 
 from core.diff.types import DiffFile
 from core.review.adapters.fake import FakeModelAdapter
+from core.review.adapters.ollama_adapter import (
+    AdapterConfigError as OllamaAdapterConfigError,
+    OllamaModelAdapter,
+)
 from core.review.adapters.openai_adapter import AdapterConfigError, OpenAIModelAdapter
 from core.review.adapters.openai_compat_adapter import (
     AdapterConfigError as OpenAICompatAdapterConfigError,
@@ -40,6 +44,12 @@ def _adapter_registry() -> Dict[str, ModelAdapter]:
         registry["openai-compat"] = OpenAICompatModelAdapter.from_env()
     except OpenAICompatAdapterConfigError:
         # OpenAI-compatible adapter is optional in local/test runs.
+        pass
+
+    try:
+        registry["ollama"] = OllamaModelAdapter.from_env()
+    except OllamaAdapterConfigError:
+        # Ollama adapter is optional in local/test runs.
         pass
 
     return registry

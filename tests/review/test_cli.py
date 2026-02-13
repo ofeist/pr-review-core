@@ -113,6 +113,24 @@ class ReviewCliTest(unittest.TestCase):
         self.assertEqual(err, "")
         self.assertEqual(run_review_mock.call_args.kwargs["adapter_name"], "openai-compat")
 
+    def test_cli_passes_ollama_adapter_to_pipeline(self) -> None:
+        raw_diff = (
+            "diff --git a/src/app.py b/src/app.py\n"
+            "@@ -1,1 +1,2 @@\n"
+            " def hello():\n"
+            "+    return 'hi'\n"
+        )
+        with patch("core.review.cli.run_review", return_value="## AI Review\n") as run_review_mock:
+            code, out, err = self._run_main(
+                ["--input-format", "raw", "--adapter", "ollama"],
+                raw_diff,
+            )
+
+        self.assertEqual(code, 0)
+        self.assertIn("## AI Review", out)
+        self.assertEqual(err, "")
+        self.assertEqual(run_review_mock.call_args.kwargs["adapter_name"], "ollama")
+
 
 if __name__ == "__main__":
     unittest.main()
