@@ -9,19 +9,19 @@ Detailed implementation plan for the next adapter track:
 - `ops/phase-4-1-thin-slices.md`
 
 ## Status
-- Phase 4.1 / Slice 0 - OpenAI-Compatible Adapter Contract and Env Spec: queued
-- Phase 4.1 / Slice 1 - Adapter Skeleton and Config Validation: queued
-- Phase 4.1 / Slice 2 - Request/Response Path: queued
-- Phase 4.1 / Slice 3 - Registry and CLI Integration: queued
-- Phase 4.1 / Slice 4 - Error Handling and Diagnostics: queued
-- Phase 4.1 / Slice 5 - Docs and Consumer Usage: queued
-- Phase 4.1 / Slice 6 - Regression and Contract Gates: queued
-- Phase 4.1 / Slice 7 - Exit Validation and Handoff: queued
+- Phase 4.1 / Slice 0 - OpenAI-Compatible Adapter Contract and Env Spec: done
+- Phase 4.1 / Slice 1 - Adapter Skeleton and Config Validation: done
+- Phase 4.1 / Slice 2 - Request/Response Path: done
+- Phase 4.1 / Slice 3 - Registry and CLI Integration: done
+- Phase 4.1 / Slice 4 - Error Handling and Diagnostics: done
+- Phase 4.1 / Slice 5 - Docs and Consumer Usage: done
+- Phase 4.1 / Slice 6 - Regression and Contract Gates: done
+- Phase 4.1 / Slice 7 - Exit Validation and Handoff: done
 - Next / Phase 5 Slice 1 - GitHub App Skeleton: queued
 
 ## Next Actions
-1. Execute Phase 4.1 slices in `ops/phase-4-1-thin-slices.md`.
-2. Start Phase 5 Slice 1 only after Phase 4.1 exit validation is done.
+1. Phase 4.1 is complete; reference `ops/phase-4-1-exit-validation.md` for handoff details.
+2. Start Phase 5 Slice 1 from `ops/phase-5-thin-slices.md`.
 
 ## Mapping Notes
 - `ops/ROADMAP.md` remains the strategic phase plan.
