@@ -124,3 +124,17 @@ When deciding where new logic belongs:
 1. If reusable across platforms, place it in `core/`.
 2. If provider-specific, place it in adapter/service layer.
 3. If customer/commercial-specific, keep it outside open-source core.
+
+## Adapter Compatibility Rules (Phase 4.2)
+- `openai-compat` remains non-breaking by default:
+  - primary path is OpenAI-compatible `responses` behavior.
+  - no silent fallback behavior unless explicitly enabled.
+- Optional fallback must be explicit opt-in:
+  - `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK=1`
+  - intended for environments where `/v1/responses` is reachable but yields empty text.
+- Fallback trigger scope:
+  - only after `responses` path returns empty extracted text (or controlled compatible runtime path).
+- Dedicated native Ollama behavior belongs in a separate `ollama` adapter:
+  - `openai-compat` is compatibility mode.
+  - `ollama` is provider-native mode (`/api/generate` contract).
+- Existing adapter contracts (`fake`, `openai`, `openai-compat`) and markdown/CLI compatibility remain compatibility-sensitive.
