@@ -28,6 +28,13 @@ class _FakeClient:
         self.responses = responses_api
 
 
+class _FakeOpenAIAPIError(Exception):
+    pass
+
+
+_FakeOpenAIAPIError.__module__ = "openai"
+
+
 class OpenAICompatAdapterConfigTest(unittest.TestCase):
     def test_from_env_requires_base_url(self) -> None:
         with patch.dict(
@@ -168,15 +175,49 @@ class OpenAICompatAdapterRuntimeTest(unittest.TestCase):
         self.assertIn("Recovered response", output)
 
     def test_generate_review_wraps_api_errors(self) -> None:
-        responses_api = _FakeResponsesApi(error_to_raise=RuntimeError("boom"))
+        responses_api = _FakeResponsesApi(error_to_raise=_FakeOpenAIAPIError("boom"))
         adapter = OpenAICompatModelAdapter(
             base_url="http://localhost:11434/v1",
             model="qwen2.5-coder",
             client=_FakeClient(responses_api),
         )
 
-        with self.assertRaises(AdapterRuntimeError):
+        with self.assertRaises(AdapterRuntimeError) as ctx:
             adapter.generate_review("prompt text")
+        self.assertIn("OpenAI-compatible request failed:", str(ctx.exception))
+
+    def test_generate_review_does_not_wrap_unexpected_programming_errors(self) -> None:
+        responses_api = _FakeResponsesApi(error_to_raise=ValueError("bad local wiring"))
+        adapter = OpenAICompatModelAdapter(
+            base_url="http://localhost:11434/v1",
+            model="qwen2.5-coder",
+            client=_FakeClient(responses_api),
+        )
+
+        with self.assertRaises(ValueError):
+            adapter.generate_review("prompt text")
+
+    def test_generate_review_redacts_keys_from_wrapped_errors(self) -> None:
+        leaked = "request failed api_key=test-key Bearer sk-abc123 OPENAI_API_KEY=shared-key"
+        responses_api = _FakeResponsesApi(error_to_raise=_FakeOpenAIAPIError(leaked))
+        adapter = OpenAICompatModelAdapter(
+            base_url="http://localhost:11434/v1",
+            model="qwen2.5-coder",
+            api_key="test-key",
+            client=_FakeClient(responses_api),
+        )
+
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "shared-key"}, clear=False):
+            with self.assertRaises(AdapterRuntimeError) as ctx:
+                adapter.generate_review("prompt text")
+
+        message = str(ctx.exception)
+        self.assertIn("OpenAI-compatible request failed:", message)
+        self.assertNotIn("test-key", message)
+        self.assertNotIn("shared-key", message)
+        self.assertNotIn("sk-abc123", message)
+        self.assertIn("api_key=***", message)
+        self.assertIn("Bearer ***", message)
 
     def test_generate_review_empty_response_is_controlled_error(self) -> None:
         responses_api = _FakeResponsesApi(response_to_return=SimpleNamespace(output_text=""))

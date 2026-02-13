@@ -1,6 +1,7 @@
 """OpenAI-compatible adapter skeleton with env validation."""
 
 import os
+import re
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -71,8 +72,11 @@ class OpenAICompatModelAdapter:
                 max_output_tokens=self.max_output_tokens,
                 timeout=self.timeout_seconds,
             )
-        except Exception as exc:  # pragma: no cover - defensive wrapper
-            raise AdapterRuntimeError(f"OpenAI-compatible request failed: {exc}") from exc
+        except Exception as exc:
+            if not self._is_expected_client_error(exc):
+                raise
+            safe_detail = self._sanitize_error_text(str(exc))
+            raise AdapterRuntimeError(f"OpenAI-compatible request failed: {safe_detail}") from exc
 
         text = self._extract_text(response)
         if not text:
@@ -94,6 +98,35 @@ class OpenAICompatModelAdapter:
         api_key = self.api_key or os.getenv("OPENAI_API_KEY", "").strip() or "openai-compat-no-key"
         self.client = OpenAI(api_key=api_key, base_url=self.base_url)
         return self.client
+
+    def _is_expected_client_error(self, exc: Exception) -> bool:
+        if isinstance(exc, (TimeoutError, ConnectionError, OSError)):
+            return True
+
+        module_name = exc.__class__.__module__
+        class_name = exc.__class__.__name__.lower()
+        return (
+            module_name.startswith("openai")
+            or module_name.startswith("httpx")
+            or "timeout" in class_name
+            or "connection" in class_name
+            or "rate" in class_name
+            or "apierror" in class_name
+        )
+
+    def _sanitize_error_text(self, text: str) -> str:
+        sanitized = text
+        secrets = {
+            self.api_key.strip(),
+            os.getenv("OPENAI_API_KEY", "").strip(),
+            os.getenv("OPENAI_COMPAT_API_KEY", "").strip(),
+        }
+        for secret in secrets:
+            if secret:
+                sanitized = sanitized.replace(secret, "***")
+        sanitized = re.sub(r"(?i)bearer\s+[A-Za-z0-9._\-]+", "Bearer ***", sanitized)
+        sanitized = re.sub(r"(?i)(api[_-]?key=)[^\s,;]+", r"\1***", sanitized)
+        return sanitized
 
     @staticmethod
     def _extract_text(response: Any) -> str:
