@@ -2,6 +2,62 @@
 
 Use this guide to verify the built package behaves correctly in an isolated environment.
 
+## Create Latest Version Package (release-candidate flow)
+
+Use this when you want to produce artifacts for the current latest version in the repo.
+
+### 0. Confirm version metadata first
+
+- Update/check `pyproject.toml` version.
+- Update/check `CHANGELOG.md` notes for the same version.
+
+Quick check:
+
+```bash
+rg -n "^version = " pyproject.toml
+```
+
+### 1. Build in an isolated venv
+
+```bash
+rm -rf build dist *.egg-info
+python3 -m venv .venv-build
+. .venv-build/bin/activate
+python -m pip install --upgrade pip build
+python -m build
+```
+
+Expected artifacts:
+- `dist/pr_review_core-<version>.tar.gz`
+- `dist/pr_review_core-<version>-py3-none-any.whl`
+
+### 2. Install wheel in a separate clean venv
+
+```bash
+python3 -m venv .venv-install
+. .venv-install/bin/activate
+python -m pip install --force-reinstall dist/*.whl
+python -c "import core; print(core.__version__)"
+```
+
+Expected:
+- Printed version matches `pyproject.toml`.
+
+### 3. Smoke the installed package from outside repo root
+
+```bash
+TMP_DIR="$(mktemp -d)"
+cd "$TMP_DIR"
+"/home/splinter/devops/pr-review-core/.venv-install/bin/python" -m core.review.cli --help > /dev/null
+rm -rf "$TMP_DIR"
+```
+
+Optional full smoke in one command:
+
+```bash
+make smoke-package
+```
+
 ## Fast Path (recommended)
 
 Run the existing smoke target:

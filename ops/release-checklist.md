@@ -18,6 +18,7 @@ Use this checklist before creating a release tag.
 - Build artifacts exist under `dist/`.
 - Installed wheel can run CLI from outside repository root.
 - Smoke output contains canonical markdown headings.
+- For exact venv/build/install steps, follow `ops/package-testing.md` ("Create Latest Version Package").
 
 ## 4. Tag and Release
 - Create annotated tag: `git tag -a v<version> -m "Release v<version>"`
