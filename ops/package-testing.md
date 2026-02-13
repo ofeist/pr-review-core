@@ -46,9 +46,10 @@ Expected:
 ### 3. Smoke the installed package from outside repo root
 
 ```bash
+REPO_ROOT="$(pwd)"
 TMP_DIR="$(mktemp -d)"
 cd "$TMP_DIR"
-"/home/splinter/devops/pr-review-core/.venv-install/bin/python" -m core.review.cli --help > /dev/null
+"$REPO_ROOT/.venv-install/bin/python" -m core.review.cli --help > /dev/null
 rm -rf "$TMP_DIR"
 ```
 
