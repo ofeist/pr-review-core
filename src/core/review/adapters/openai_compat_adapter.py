@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from typing import Any, Optional
@@ -82,7 +83,13 @@ class OpenAICompatModelAdapter:
 
         text = self._extract_text(response)
         if not text and self._is_ollama_fallback_enabled():
-            text = self._generate_with_ollama(prompt)
+            try:
+                text = self._generate_with_ollama(prompt)
+            except Exception as exc:
+                if not self._is_expected_fallback_error(exc):
+                    raise
+                safe_detail = self._sanitize_error_text(str(exc))
+                raise AdapterRuntimeError(f"Ollama fallback request failed: {safe_detail}") from exc
         if not text:
             raise AdapterRuntimeError("OpenAI-compatible response did not contain text output.")
 
@@ -116,6 +123,20 @@ class OpenAICompatModelAdapter:
             or "connection" in class_name
             or "rate" in class_name
             or "apierror" in class_name
+        )
+
+    @staticmethod
+    def _is_expected_fallback_error(exc: Exception) -> bool:
+        return isinstance(
+            exc,
+            (
+                TimeoutError,
+                ConnectionError,
+                OSError,
+                urllib.error.URLError,
+                urllib.error.HTTPError,
+                json.JSONDecodeError,
+            ),
         )
 
     def _sanitize_error_text(self, text: str) -> str:

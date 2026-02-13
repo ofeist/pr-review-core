@@ -22,7 +22,7 @@ Completed prior track:
 - Phase 4.1 / Slice 7 - Exit Validation and Handoff: done
 - Phase 4.2 / Slice 0 - Contract Decision and Guardrails: done
 - Phase 4.2 / Slice 1 - Opt-In Fallback Path in OpenAI-Compat: done
-- Phase 4.2 / Slice 2 - Error Handling, Timeout, and Secret Safety for Fallback: queued
+- Phase 4.2 / Slice 2 - Error Handling, Timeout, and Secret Safety for Fallback: done
 - Phase 4.2 / Slice 3 - Dedicated Ollama Adapter Skeleton: queued
 - Phase 4.2 / Slice 4 - Registry/CLI Integration for Ollama: queued
 - Phase 4.2 / Slice 5 - Docs and Consumer Usage: queued
