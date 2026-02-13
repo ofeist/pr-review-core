@@ -1,4 +1,6 @@
-﻿import unittest
+﻿import os
+import unittest
+from unittest.mock import patch
 
 from core.diff.types import Change, ChangeType, DiffFile, DiffHunk
 from core.review.adapters.fake import FakeModelAdapter
@@ -18,6 +20,34 @@ class PipelineSmokeTest(unittest.TestCase):
     def test_get_adapter_returns_fake(self) -> None:
         adapter = get_adapter("fake")
         self.assertEqual(adapter.name, "fake")
+
+    def test_get_adapter_returns_openai_compat_when_env_configured(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "OPENAI_COMPAT_BASE_URL": "http://localhost:11434/v1",
+                "OPENAI_COMPAT_MODEL": "qwen2.5-coder",
+            },
+            clear=False,
+        ):
+            adapter = get_adapter("openai-compat")
+        self.assertEqual(adapter.name, "openai-compat")
+
+    def test_unknown_adapter_lists_openai_compat_when_available(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "OPENAI_COMPAT_BASE_URL": "http://localhost:11434/v1",
+                "OPENAI_COMPAT_MODEL": "qwen2.5-coder",
+            },
+            clear=False,
+        ):
+            with self.assertRaises(ValueError) as ctx:
+                get_adapter("does-not-exist")
+        message = str(ctx.exception)
+        self.assertIn("Known adapters:", message)
+        self.assertIn("fake", message)
+        self.assertIn("openai-compat", message)
 
     def test_run_review_fake_adapter_end_to_end(self) -> None:
         files = [
