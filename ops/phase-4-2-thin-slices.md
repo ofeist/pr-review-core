@@ -4,7 +4,8 @@
 Unblock local/self-hosted usage where `/v1/responses` is reachable but returns empty text, while preserving a clean path to a dedicated Ollama adapter.
 
 ## Status
-- Slice 0: pending
+- Slice 0: done
+- Evidence: guardrails added in `ops/IMPLEMENTATION-GUARDRAILS.md` to lock Phase 4.2 contract decisions: opt-in-only fallback flag (`OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK=1`), explicit fallback trigger scope, dedicated `ollama` adapter boundary, and no-break requirement for existing adapters.
 - Slice 1: pending
 - Slice 2: pending
 - Slice 3: pending
