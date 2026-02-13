@@ -4,8 +4,10 @@
 Break implementation of an OpenAI-compatible model adapter into small, testable slices that enable support for multiple backends (OpenAI-compatible hosted APIs, self-hosted vLLM, local Ollama-compatible gateways) without changing core review contracts.
 
 ## Status
-- Slice 0: pending
-- Slice 1: pending
+- Slice 0: done
+- Evidence: adapter/env contract and failure semantics documented (`openai-compat` name, env vars, config/runtime error expectations).
+- Slice 1: done
+- Evidence: added `src/core/review/adapters/openai_compat_adapter.py` with strict env parsing and timeout validation; added `tests/review/test_openai_compat_adapter.py` config/runtime validation tests.
 - Slice 2: pending
 - Slice 3: pending
 - Slice 4: pending
