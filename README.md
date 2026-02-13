@@ -33,6 +33,7 @@ Out of scope right now:
 - `CHANGELOG.md`: release notes and user-visible changes
 - `ops/ROADMAP.md`: project roadmap
 - `ops/done/phase-4-thin-slices.md`: Phase 4 execution slices (completed)
+- `ops/done/phase-4-1-thin-slices.md`: Phase 4.1 execution slices (completed)
 - `ops/next-thin-slices.md`: active execution queue (phase-agnostic)
 - `ops/phase-5-thin-slices.md`: Phase 5 draft slices
 - `ops/versioning-policy.md`: version bump and compatibility policy
@@ -40,6 +41,7 @@ Out of scope right now:
 - `ops/release-checklist.md`: release/tag checklist
 - `ops/package-testing.md`: local package build/install validation steps
 - `ops/done/phase-4-exit-validation.md`: Phase 4 readiness validation and handoff notes
+- `ops/done/phase-4-1-exit-validation.md`: Phase 4.1 readiness validation and handoff notes
 - `ops/consumer-integration.md`: consumer quickstart for GitHub/Bitbucket integration
 - `ops/IMPLEMENTATION-GUARDRAILS.md`: implementation boundaries and contract guardrails
 - `ops/done/phase-3-validation-checklist.md`: Phase 3 manual acceptance checklist

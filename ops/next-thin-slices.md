@@ -5,8 +5,11 @@ Maintain a phase-agnostic, execution-first queue of immediate slices.
 
 Use this as the active implementation plan when roadmap phase ordering may change.
 
-Detailed implementation plan for the next adapter track:
-- `ops/phase-4-1-thin-slices.md`
+Active detailed plan:
+- `ops/phase-5-thin-slices.md`
+
+Completed prior track:
+- `ops/done/phase-4-1-thin-slices.md`
 
 ## Status
 - Phase 4.1 / Slice 0 - OpenAI-Compatible Adapter Contract and Env Spec: done
@@ -20,7 +23,7 @@ Detailed implementation plan for the next adapter track:
 - Next / Phase 5 Slice 1 - GitHub App Skeleton: queued
 
 ## Next Actions
-1. Phase 4.1 is complete; reference `ops/phase-4-1-exit-validation.md` for handoff details.
+1. Phase 4.1 is complete; reference `ops/done/phase-4-1-exit-validation.md` for handoff details.
 2. Start Phase 5 Slice 1 from `ops/phase-5-thin-slices.md`.
 
 ## Mapping Notes

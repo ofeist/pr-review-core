@@ -19,7 +19,7 @@ Break implementation of an OpenAI-compatible model adapter into small, testable 
 - Slice 6: done
 - Evidence: added markdown heading contract coverage for `openai-compat` in `tests/review/test_contract_compatibility.py`; added adapter-specific fixture-path regression in `tests/review/test_pipeline_fixtures.py`; full review suite passed (`86 tests`) and package smoke passed (`make smoke-package`).
 - Slice 7: done
-- Evidence: added `ops/phase-4-1-exit-validation.md` with fixture-based command outcomes for `fake`, `openai`, and `openai-compat`, plus known limitations/provider quirks and follow-up notes.
+- Evidence: added `ops/done/phase-4-1-exit-validation.md` with fixture-based command outcomes for `fake`, `openai`, and `openai-compat`, plus known limitations/provider quirks and follow-up notes.
 
 ## Phase 4.1 Goal
 Add a production-usable `openai-compat` adapter to `core/review` with:
