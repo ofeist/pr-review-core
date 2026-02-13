@@ -16,7 +16,8 @@ Break implementation of an OpenAI-compatible model adapter into small, testable 
 - Evidence: `src/core/review/adapters/openai_compat_adapter.py` now wraps only expected provider/network failures as `AdapterRuntimeError`, propagates unexpected programming errors, and sanitizes wrapped error text for key/token leakage; regression coverage added in `tests/review/test_openai_compat_adapter.py`.
 - Slice 5: done
 - Evidence: added `openai-compat` install/env/provider usage docs in `README.md`, `src/core/review/README.md`, `ops/package-testing.md`, and `ops/consumer-integration.md`; sanity-ran documented fake CLI flows for raw, parsed-json, and `git diff` pipe paths.
-- Slice 6: pending
+- Slice 6: done
+- Evidence: added markdown heading contract coverage for `openai-compat` in `tests/review/test_contract_compatibility.py`; added adapter-specific fixture-path regression in `tests/review/test_pipeline_fixtures.py`; full review suite passed (`86 tests`) and package smoke passed (`make smoke-package`).
 - Slice 7: pending
 
 ## Phase 4.1 Goal

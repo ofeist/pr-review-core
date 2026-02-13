@@ -2,9 +2,11 @@
 import unittest
 from dataclasses import dataclass
 from pathlib import Path
+from types import SimpleNamespace
 
 from core.diff.filters import filter_diff_files
 from core.diff.parse_diff import parse_diff
+from core.review.adapters.openai_compat_adapter import OpenAICompatModelAdapter
 from core.review import cli
 from core.review.chunking import chunk_diff_files
 from core.review.pipeline import run_review
@@ -96,6 +98,30 @@ class PipelineFixtureRegressionTest(unittest.TestCase):
         self.assertIn("## AI Review", output)
         self.assertIn("Review could not be generated", output)
         self.assertIn("No issues found.", output)
+
+    def test_openai_compat_adapter_on_fixture_path(self) -> None:
+        raw = self._read("raw_small.diff")
+        files = filter_diff_files(parse_diff(raw))
+
+        class _Responses:
+            @staticmethod
+            def create(**kwargs):
+                del kwargs
+                return SimpleNamespace(output_text="## AI Review\n\n### Summary\ncompat-ok")
+
+        class _Client:
+            responses = _Responses()
+
+        adapter = OpenAICompatModelAdapter(
+            base_url="http://localhost:11434/v1",
+            model="qwen2.5-coder",
+            client=_Client(),
+        )
+        output = run_review(files, adapter_override=adapter)
+        self.assertIn("## AI Review", output)
+        self.assertIn("### Summary", output)
+        self.assertIn("### Intent", output)
+        self.assertIn("### Findings", output)
 
 
 if __name__ == "__main__":
