@@ -41,6 +41,7 @@ Out of scope:
 
 Notes:
 - Base install supports `--adapter fake`.
+- Base install supports `--adapter ollama`.
 - `--adapter openai` requires `OPENAI_API_KEY` and installed OpenAI extra.
 - `--adapter openai-compat` requires `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_MODEL`, and installed OpenAI extra.
 - `OPENAI_COMPAT_API_KEY` is optional and provider-specific.
@@ -65,7 +66,7 @@ PYTHONPATH=src python -m core.review.cli --input-format raw --from-file path/to/
 ```
 
 Useful flags:
-- `--adapter fake|openai|openai-compat`
+- `--adapter fake|openai|openai-compat|ollama`
 - `--max-changes-per-chunk <int>`
 - `--fallback-mode on|off`
 - `--repository`, `--base-ref`, `--head-ref`
@@ -86,11 +87,20 @@ Required for `--adapter openai-compat`:
 Optional:
 - `OPENAI_COMPAT_API_KEY` (required by some providers)
 - `OPENAI_COMPAT_TIMEOUT_SECONDS` (default: `30`)
+- `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK` (`1|true|yes|on` to enable opt-in fallback to native Ollama `/api/generate` when `responses` output is empty)
 
 Example providers:
 - Hosted OpenAI-compatible APIs: set provider `.../v1` URL + model identifier.
 - Self-hosted vLLM: `OPENAI_COMPAT_BASE_URL=http://<host>:8000/v1`.
 - Local gateway: `OPENAI_COMPAT_BASE_URL=http://localhost:11434/v1`.
+
+## Ollama Configuration
+Required for `--adapter ollama`:
+- `OLLAMA_BASE_URL` (for example `http://localhost:11434`)
+- `OLLAMA_MODEL` (for example `qwen3:32b`)
+
+Optional:
+- `OLLAMA_TIMEOUT_SECONDS` (default: `30`)
 
 ## Exit Codes
 - `0`: success
