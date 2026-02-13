@@ -12,7 +12,8 @@ Unblock local/self-hosted usage where `/v1/responses` is reachable but returns e
 - Evidence: fallback runtime failures now wrap as `AdapterRuntimeError` with concise `Ollama fallback request failed: ...` messaging in `src/core/review/adapters/openai_compat_adapter.py`; timeout/network error and secret-redaction regression tests added in `tests/review/test_openai_compat_adapter.py`; full review suite passed (`90 tests`).
 - Slice 3: done
 - Evidence: added `src/core/review/adapters/ollama_adapter.py` with strict env validation for `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, and `OLLAMA_TIMEOUT_SECONDS`; added config validation coverage in `tests/review/test_ollama_adapter.py`; full review suite passed (`96 tests`).
-- Slice 4: pending
+- Slice 4: done
+- Evidence: registered `ollama` adapter in `src/core/review/pipeline.py`; added CLI adapter selection regression in `tests/review/test_cli.py`; added adapter-registry presence and known-adapter error coverage for `ollama` in `tests/review/test_model_adapter.py`; full review suite passed (`99 tests`).
 - Slice 5: pending
 - Slice 6: pending
 

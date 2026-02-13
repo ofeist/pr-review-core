@@ -49,6 +49,34 @@ class PipelineSmokeTest(unittest.TestCase):
         self.assertIn("fake", message)
         self.assertIn("openai-compat", message)
 
+    def test_get_adapter_returns_ollama_when_env_configured(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "OLLAMA_BASE_URL": "http://localhost:11434",
+                "OLLAMA_MODEL": "qwen3:32b",
+            },
+            clear=False,
+        ):
+            adapter = get_adapter("ollama")
+        self.assertEqual(adapter.name, "ollama")
+
+    def test_unknown_adapter_lists_ollama_when_available(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "OLLAMA_BASE_URL": "http://localhost:11434",
+                "OLLAMA_MODEL": "qwen3:32b",
+            },
+            clear=False,
+        ):
+            with self.assertRaises(ValueError) as ctx:
+                get_adapter("does-not-exist")
+        message = str(ctx.exception)
+        self.assertIn("Known adapters:", message)
+        self.assertIn("fake", message)
+        self.assertIn("ollama", message)
+
     def test_run_review_fake_adapter_end_to_end(self) -> None:
         files = [
             DiffFile(
