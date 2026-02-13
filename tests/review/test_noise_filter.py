@@ -204,6 +204,23 @@ class NoiseFilterTest(unittest.TestCase):
         self.assertIn("- No issues found.", output)
         self.assertNotIn("Comprehensive test coverage", output)
 
+    def test_filters_generic_review_commentary_from_latest_output(self) -> None:
+        raw = (
+            "## AI Review\n\n"
+            "### Summary\n"
+            "Reviewed 1 chunk(s).\n\n"
+            "### Findings\n"
+            "- generate_review catches all exceptions from the client call and wraps them as AdapterRuntimeError, which is good defensive error handling. However, the catch-all may mask potentially critical exceptions (e.g., programming errors). Consider limiting the catch to expected client or network exceptions if possible.\n"
+            "- client is stored as an instance attribute after initialization, preventing unnecessary re-instantiations, which is a good performance optimization.\n"
+            "- Documentation in ops/phase-4-1-thin-slices.md is updated accurately to reflect slice completion with evidence, supporting traceability of development progress.\n"
+        )
+
+        output = filter_review_markdown(raw)
+        self.assertIn("- No issues found.", output)
+        self.assertNotIn("good defensive error handling", output)
+        self.assertNotIn("good performance optimization", output)
+        self.assertNotIn("traceability of development progress", output)
+
 
 if __name__ == "__main__":
     unittest.main()

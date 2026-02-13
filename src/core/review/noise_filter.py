@@ -70,6 +70,10 @@ PRAISE_KEYWORDS = {
     "maintains backward compatibility",
     "reduces false positives",
     "ensures only comments",
+    "good defensive error handling",
+    "good performance optimization",
+    "supporting traceability of development progress",
+    "updated accurately to reflect",
 }
 
 POSITIVE_QUALITY_KEYWORDS = {
@@ -117,6 +121,7 @@ CI_META_KEYWORDS = {
 }
 
 SPECULATIVE_MARKERS = {
+    "may",
     "might",
     "maybe",
     "possibly",
@@ -141,7 +146,6 @@ EVIDENCE_MARKERS = {
     "before ",
     "after ",
     "when",
-    "if ",
 }
 
 ISSUE_CLAIM_KEYWORDS = {
