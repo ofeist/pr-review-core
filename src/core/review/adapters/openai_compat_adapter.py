@@ -1,7 +1,9 @@
 """OpenAI-compatible adapter skeleton with env validation."""
 
+import json
 import os
 import re
+import urllib.request
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -79,6 +81,8 @@ class OpenAICompatModelAdapter:
             raise AdapterRuntimeError(f"OpenAI-compatible request failed: {safe_detail}") from exc
 
         text = self._extract_text(response)
+        if not text and self._is_ollama_fallback_enabled():
+            text = self._generate_with_ollama(prompt)
         if not text:
             raise AdapterRuntimeError("OpenAI-compatible response did not contain text output.")
 
@@ -127,6 +131,37 @@ class OpenAICompatModelAdapter:
         sanitized = re.sub(r"(?i)bearer\s+[A-Za-z0-9._\-]+", "Bearer ***", sanitized)
         sanitized = re.sub(r"(?i)(api[_-]?key=)[^\s,;]+", r"\1***", sanitized)
         return sanitized
+
+    @staticmethod
+    def _is_ollama_fallback_enabled() -> bool:
+        raw = os.getenv("OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK", "").strip().lower()
+        return raw in {"1", "true", "yes", "on"}
+
+    def _generate_with_ollama(self, prompt: str) -> str:
+        payload = {
+            "model": self.model,
+            "prompt": prompt,
+            "stream": False,
+        }
+        request = urllib.request.Request(
+            url=self._ollama_generate_url(),
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+            body = response.read().decode("utf-8", errors="replace")
+        data = json.loads(body)
+        text = data.get("response", "")
+        if isinstance(text, str):
+            return text.strip()
+        return ""
+
+    def _ollama_generate_url(self) -> str:
+        base = self.base_url.rstrip("/")
+        if base.lower().endswith("/v1"):
+            base = base[:-3]
+        return f"{base}/api/generate"
 
     @staticmethod
     def _extract_text(response: Any) -> str:

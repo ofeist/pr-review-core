@@ -1,6 +1,7 @@
 import os
 import unittest
 from types import SimpleNamespace
+from urllib.parse import urlparse
 from unittest.mock import patch
 
 from core.review.adapters.openai_compat_adapter import (
@@ -33,6 +34,21 @@ class _FakeOpenAIAPIError(Exception):
 
 
 _FakeOpenAIAPIError.__module__ = "openai"
+
+
+class _FakeHttpResponse:
+    def __init__(self, body: str):
+        self._body = body
+
+    def read(self):
+        return self._body.encode("utf-8")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        del exc_type, exc, tb
+        return False
 
 
 class OpenAICompatAdapterConfigTest(unittest.TestCase):
@@ -231,6 +247,41 @@ class OpenAICompatAdapterRuntimeTest(unittest.TestCase):
             adapter.generate_review("prompt text")
 
         self.assertIn("did not contain text output", str(ctx.exception))
+
+    def test_generate_review_empty_response_with_fallback_disabled_is_unchanged(self) -> None:
+        responses_api = _FakeResponsesApi(response_to_return=SimpleNamespace(output_text=""))
+        adapter = OpenAICompatModelAdapter(
+            base_url="http://localhost:11434/v1",
+            model="qwen2.5-coder",
+            client=_FakeClient(responses_api),
+        )
+
+        with patch.dict(os.environ, {"OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK": "0"}, clear=False):
+            with self.assertRaises(AdapterRuntimeError) as ctx:
+                adapter.generate_review("prompt text")
+        self.assertIn("did not contain text output", str(ctx.exception))
+
+    def test_generate_review_empty_response_uses_opt_in_ollama_fallback(self) -> None:
+        responses_api = _FakeResponsesApi(response_to_return=SimpleNamespace(output_text=""))
+        adapter = OpenAICompatModelAdapter(
+            base_url="http://localhost:11434/v1",
+            model="qwen3:32b",
+            client=_FakeClient(responses_api),
+        )
+
+        with patch.dict(os.environ, {"OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK": "1"}, clear=False):
+            with patch(
+                "core.review.adapters.openai_compat_adapter.urllib.request.urlopen",
+                return_value=_FakeHttpResponse('{"response":"fallback hello"}'),
+            ) as urlopen_mock:
+                output = adapter.generate_review("prompt text")
+
+        self.assertEqual(output, "fallback hello")
+        request = urlopen_mock.call_args.args[0]
+        self.assertEqual(urlparse(request.full_url).path, "/api/generate")
+        body = request.data.decode("utf-8")
+        self.assertIn('"model": "qwen3:32b"', body)
+        self.assertIn('"prompt": "prompt text"', body)
 
 
 if __name__ == "__main__":

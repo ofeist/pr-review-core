@@ -6,7 +6,8 @@ Unblock local/self-hosted usage where `/v1/responses` is reachable but returns e
 ## Status
 - Slice 0: done
 - Evidence: guardrails added in `ops/IMPLEMENTATION-GUARDRAILS.md` to lock Phase 4.2 contract decisions: opt-in-only fallback flag (`OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK=1`), explicit fallback trigger scope, dedicated `ollama` adapter boundary, and no-break requirement for existing adapters.
-- Slice 1: pending
+- Slice 1: done
+- Evidence: `src/core/review/adapters/openai_compat_adapter.py` now supports opt-in fallback from empty `responses` output to Ollama native `/api/generate` when `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK=1`; added fallback-disabled stability test and fallback-enabled success test in `tests/review/test_openai_compat_adapter.py`; full review suite passed (`88 tests`).
 - Slice 2: pending
 - Slice 3: pending
 - Slice 4: pending
