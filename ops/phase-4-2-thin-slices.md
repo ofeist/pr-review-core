@@ -10,7 +10,8 @@ Unblock local/self-hosted usage where `/v1/responses` is reachable but returns e
 - Evidence: `src/core/review/adapters/openai_compat_adapter.py` now supports opt-in fallback from empty `responses` output to Ollama native `/api/generate` when `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK=1`; added fallback-disabled stability test and fallback-enabled success test in `tests/review/test_openai_compat_adapter.py`; full review suite passed (`88 tests`).
 - Slice 2: done
 - Evidence: fallback runtime failures now wrap as `AdapterRuntimeError` with concise `Ollama fallback request failed: ...` messaging in `src/core/review/adapters/openai_compat_adapter.py`; timeout/network error and secret-redaction regression tests added in `tests/review/test_openai_compat_adapter.py`; full review suite passed (`90 tests`).
-- Slice 3: pending
+- Slice 3: done
+- Evidence: added `src/core/review/adapters/ollama_adapter.py` with strict env validation for `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, and `OLLAMA_TIMEOUT_SECONDS`; added config validation coverage in `tests/review/test_ollama_adapter.py`; full review suite passed (`96 tests`).
 - Slice 4: pending
 - Slice 5: pending
 - Slice 6: pending
