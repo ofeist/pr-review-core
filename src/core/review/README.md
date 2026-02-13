@@ -46,6 +46,17 @@ Notes:
 - `--adapter openai-compat` requires `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_MODEL`, and installed OpenAI extra.
 - `OPENAI_COMPAT_API_KEY` is optional and provider-specific.
 
+## Adapter Env Matrix (Canonical)
+
+Use this section as the source of truth for adapter environment variables.
+
+| Adapter | Required | Optional |
+| --- | --- | --- |
+| `fake` | none | none |
+| `openai` | `OPENAI_API_KEY` | `OPENAI_MODEL` (default `gpt-4.1-mini`), `OPENAI_TIMEOUT_SECONDS` (default `30`) |
+| `openai-compat` | `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_MODEL` | `OPENAI_COMPAT_API_KEY`, `OPENAI_COMPAT_TIMEOUT_SECONDS` (default `30`), `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK` (`1\|true\|yes\|on`) |
+| `ollama` | `OLLAMA_BASE_URL`, `OLLAMA_MODEL` | `OLLAMA_TIMEOUT_SECONDS` (default `30`) |
+
 ## CLI Usage
 Raw diff input:
 
@@ -71,36 +82,10 @@ Useful flags:
 - `--fallback-mode on|off`
 - `--repository`, `--base-ref`, `--head-ref`
 
-## OpenAI Configuration
-Required for `--adapter openai`:
-- `OPENAI_API_KEY`
-
-Optional:
-- `OPENAI_MODEL` (default: `gpt-4.1-mini`)
-- `OPENAI_TIMEOUT_SECONDS` (default: `30`)
-
-## OpenAI-Compatible Configuration
-Required for `--adapter openai-compat`:
-- `OPENAI_COMPAT_BASE_URL`
-- `OPENAI_COMPAT_MODEL`
-
-Optional:
-- `OPENAI_COMPAT_API_KEY` (required by some providers)
-- `OPENAI_COMPAT_TIMEOUT_SECONDS` (default: `30`)
-- `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK` (`1|true|yes|on` to enable opt-in fallback to native Ollama `/api/generate` when `responses` output is empty)
-
-Example providers:
-- Hosted OpenAI-compatible APIs: set provider `.../v1` URL + model identifier.
-- Self-hosted vLLM: `OPENAI_COMPAT_BASE_URL=http://<host>:8000/v1`.
-- Local gateway: `OPENAI_COMPAT_BASE_URL=http://localhost:11434/v1`.
-
-## Ollama Configuration
-Required for `--adapter ollama`:
-- `OLLAMA_BASE_URL` (for example `http://localhost:11434`)
-- `OLLAMA_MODEL` (for example `qwen3:32b`)
-
-Optional:
-- `OLLAMA_TIMEOUT_SECONDS` (default: `30`)
+Provider notes:
+- OpenAI-compatible providers should use `.../v1` base URL.
+- Enable `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK` when `responses` output is empty and you want native Ollama fallback.
+- Use `ollama` adapter for direct `/api/generate` behavior.
 
 ## Exit Codes
 - `0`: success

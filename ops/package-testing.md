@@ -2,6 +2,9 @@
 
 Use this guide to verify the built package behaves correctly in an isolated environment.
 
+Canonical env matrix for adapters:
+- `src/core/review/README.md` ("Adapter Env Matrix (Canonical)")
+
 ## Create Latest Version Package (release-candidate flow)
 
 Use this when you want to produce artifacts for the current latest version in the repo.
@@ -166,7 +169,6 @@ Example: hosted OpenAI-compatible provider
 ```bash
 export OPENAI_COMPAT_BASE_URL="https://api.example.ai/v1"
 export OPENAI_COMPAT_MODEL="provider/model-name"
-export OPENAI_COMPAT_API_KEY="..."
 python -m core.review.cli \
   --input-format raw \
   --from-file tests/review/fixtures/raw_small.diff \
@@ -189,7 +191,6 @@ Example: local gateway (Ollama-compatible endpoint)
 ```bash
 export OPENAI_COMPAT_BASE_URL="http://localhost:11434/v1"
 export OPENAI_COMPAT_MODEL="qwen2.5-coder"
-export OPENAI_COMPAT_TIMEOUT_SECONDS="300"
 python -m core.review.cli \
   --input-format raw \
   --from-file tests/review/fixtures/raw_small.diff \
@@ -201,7 +202,6 @@ Example: enable opt-in fallback to native Ollama when `responses` output is empt
 ```bash
 export OPENAI_COMPAT_BASE_URL="http://localhost:11434/v1"
 export OPENAI_COMPAT_MODEL="qwen3:32b"
-export OPENAI_COMPAT_TIMEOUT_SECONDS="300"
 export OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK="1"
 python -m core.review.cli \
   --input-format raw \
@@ -216,7 +216,6 @@ Use this when you want direct `/api/generate` behavior:
 ```bash
 export OLLAMA_BASE_URL="http://localhost:11434"
 export OLLAMA_MODEL="qwen3:32b"
-export OLLAMA_TIMEOUT_SECONDS="300"
 python -m core.review.cli \
   --input-format raw \
   --from-file tests/review/fixtures/raw_small.diff \
@@ -232,7 +231,7 @@ python -m core.review.cli \
 - `Unknown adapter 'ollama'. Known adapters: ...`
   - `OLLAMA_BASE_URL` or `OLLAMA_MODEL` is missing.
 - Slow local models timeout
-  - increase `OPENAI_COMPAT_TIMEOUT_SECONDS` or `OLLAMA_TIMEOUT_SECONDS`.
+  - increase timeout vars from the canonical matrix in `src/core/review/README.md`.
 - Output works from repo root but fails after install
   - run smoke from a temp directory to avoid import leakage.
 - Missing build tools
