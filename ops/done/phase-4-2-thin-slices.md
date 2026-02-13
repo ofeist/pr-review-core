@@ -16,7 +16,8 @@ Unblock local/self-hosted usage where `/v1/responses` is reachable but returns e
 - Evidence: registered `ollama` adapter in `src/core/review/pipeline.py`; added CLI adapter selection regression in `tests/review/test_cli.py`; added adapter-registry presence and known-adapter error coverage for `ollama` in `tests/review/test_model_adapter.py`; full review suite passed (`99 tests`).
 - Slice 5: done
 - Evidence: updated adapter-selection and usage docs in `README.md`, `src/core/review/README.md`, `ops/package-testing.md`, and `ops/consumer-integration.md` to distinguish `openai-compat` vs `ollama`, including `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK` behavior and native `ollama` examples; sanity-ran documented `openai-compat`/`ollama` command paths in current environment.
-- Slice 6: pending
+- Slice 6: done
+- Evidence: added `ops/done/phase-4-2-exit-validation.md` with command outcomes for `fake`, `openai-compat` (with/without fallback), and `ollama`, recorded environment quirks/limitations, and confirmed regression suite remains green (`99 tests`).
 
 ## Phase 4.2 Goal
 Deliver reliable local model execution with:
@@ -131,7 +132,7 @@ Done when:
 Objective: close track with evidence and next-step clarity.
 
 Deliverables:
-- Add `ops/phase-4-2-exit-validation.md` with command outcomes:
+- Add `ops/done/phase-4-2-exit-validation.md` with command outcomes:
   - `fake`
   - `openai-compat` (with and without fallback flag)
   - `ollama`
