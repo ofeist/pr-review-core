@@ -189,6 +189,7 @@ Example: local gateway (Ollama-compatible endpoint)
 ```bash
 export OPENAI_COMPAT_BASE_URL="http://localhost:11434/v1"
 export OPENAI_COMPAT_MODEL="qwen2.5-coder"
+export OPENAI_COMPAT_TIMEOUT_SECONDS="300"
 python -m core.review.cli \
   --input-format raw \
   --from-file tests/review/fixtures/raw_small.diff \
@@ -200,6 +201,7 @@ Example: enable opt-in fallback to native Ollama when `responses` output is empt
 ```bash
 export OPENAI_COMPAT_BASE_URL="http://localhost:11434/v1"
 export OPENAI_COMPAT_MODEL="qwen3:32b"
+export OPENAI_COMPAT_TIMEOUT_SECONDS="300"
 export OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK="1"
 python -m core.review.cli \
   --input-format raw \
@@ -214,6 +216,7 @@ Use this when you want direct `/api/generate` behavior:
 ```bash
 export OLLAMA_BASE_URL="http://localhost:11434"
 export OLLAMA_MODEL="qwen3:32b"
+export OLLAMA_TIMEOUT_SECONDS="300"
 python -m core.review.cli \
   --input-format raw \
   --from-file tests/review/fixtures/raw_small.diff \
@@ -228,6 +231,8 @@ python -m core.review.cli \
   - `OPENAI_COMPAT_BASE_URL`/`OPENAI_COMPAT_MODEL` or OpenAI extra is missing.
 - `Unknown adapter 'ollama'. Known adapters: ...`
   - `OLLAMA_BASE_URL` or `OLLAMA_MODEL` is missing.
+- Slow local models timeout
+  - increase `OPENAI_COMPAT_TIMEOUT_SECONDS` or `OLLAMA_TIMEOUT_SECONDS`.
 - Output works from repo root but fails after install
   - run smoke from a temp directory to avoid import leakage.
 - Missing build tools

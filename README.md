@@ -60,7 +60,9 @@ Notes:
 - `--adapter openai` requires both `OPENAI_API_KEY` and the `openai` extra.
 - `--adapter openai-compat` requires `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_MODEL`, and the `openai` extra.
 - `OPENAI_COMPAT_API_KEY` is optional (required by some providers).
+- `OPENAI_COMPAT_TIMEOUT_SECONDS` is optional (default `30`).
 - `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK=1` enables opt-in fallback from empty `responses` output to native Ollama `/api/generate`.
+- `OLLAMA_TIMEOUT_SECONDS` is optional (default `30`).
 
 For package validation steps, see `ops/package-testing.md`.
 
@@ -126,6 +128,7 @@ OpenAI-compatible with explicit Ollama fallback enabled:
 ```bash
 export OPENAI_COMPAT_BASE_URL="http://localhost:11434/v1"
 export OPENAI_COMPAT_MODEL="qwen3:32b"
+export OPENAI_COMPAT_TIMEOUT_SECONDS="300"
 export OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK="1"
 python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapter openai-compat
 ```
@@ -137,6 +140,7 @@ Use `ollama` adapter when you want direct native `/api/generate` behavior:
 ```bash
 export OLLAMA_BASE_URL="http://localhost:11434"
 export OLLAMA_MODEL="qwen3:32b"
+export OLLAMA_TIMEOUT_SECONDS="300"
 python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapter ollama
 ```
 
