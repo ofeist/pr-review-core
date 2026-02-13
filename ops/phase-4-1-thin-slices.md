@@ -8,7 +8,8 @@ Break implementation of an OpenAI-compatible model adapter into small, testable 
 - Evidence: adapter/env contract and failure semantics documented (`openai-compat` name, env vars, config/runtime error expectations).
 - Slice 1: done
 - Evidence: added `src/core/review/adapters/openai_compat_adapter.py` with strict env parsing and timeout validation; added `tests/review/test_openai_compat_adapter.py` config/runtime validation tests.
-- Slice 2: pending
+- Slice 2: done
+- Evidence: implemented `generate_review()` request path and response extraction (`output_text` + structured fallback), with request-payload/runtime/empty-response tests in `tests/review/test_openai_compat_adapter.py`.
 - Slice 3: pending
 - Slice 4: pending
 - Slice 5: pending
