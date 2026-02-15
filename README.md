@@ -69,7 +69,7 @@ For package validation steps, see `ops/package-testing.md`.
 Install in a consumer repository:
 
 ```bash
-python -m pip install "git+https://github.com/ofeist/pr-review-core.git@v0.1.0"
+python -m pip install "git+https://github.com/ofeist/pr-review-core.git@v0.2.0"
 ```
 
 Run on a diff file:
@@ -79,6 +79,11 @@ python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapt
 ```
 
 For full GitHub and Bitbucket interim integration patterns, see `ops/consumer-integration.md`.
+
+### Version Pinning (Consumer Guidance)
+- Pin exact versions for reproducibility (`==` or exact git tag).
+- Do not use floating ranges such as `>=` for production automation.
+- Upgrade on a planned cadence (for example weekly/biweekly), not ad hoc per PR.
 
 ## Local Usage
 Raw diff review:

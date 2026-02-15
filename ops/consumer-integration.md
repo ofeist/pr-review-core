@@ -11,7 +11,17 @@ Choose one installation mode.
 - With OpenAI/OpenAI-compatible adapter support:
   - `python -m pip install ".[openai]"`
 - From a tagged GitHub release:
-  - `python -m pip install "git+https://github.com/ofeist/pr-review-core.git@v0.1.0"`
+  - `python -m pip install "git+https://github.com/ofeist/pr-review-core.git@v0.2.0"`
+- From GitHub Release wheel asset (exact immutable artifact):
+  - `python -m pip install "https://github.com/ofeist/pr-review-core/releases/download/v0.2.0/pr_review_core-0.2.0-py3-none-any.whl"`
+
+## 1.1 Pinning Policy for Consumers
+- Always pin exact versions in CI/production:
+  - Good: `pr-review-core==0.2.0`
+  - Good: `git+https://github.com/ofeist/pr-review-core.git@v0.2.0`
+  - Avoid: `pr-review-core>=0.2.0`
+- Upgrade on a planned cadence (for example biweekly/monthly) with changelog review.
+- Test upgrades in a branch before rolling into default branch pipelines.
 
 ## 2. Quickstart
 
@@ -47,7 +57,7 @@ In your GitHub workflow job:
 - name: Install pr-review-core
   run: |
     python -m pip install --upgrade pip
-    python -m pip install "git+https://github.com/ofeist/pr-review-core.git@v0.1.0"
+    python -m pip install "git+https://github.com/ofeist/pr-review-core.git@v0.2.0"
 
 - name: Generate review markdown
   run: |
@@ -61,7 +71,7 @@ In your GitHub workflow job:
 For OpenAI mode, install with extras and set secrets:
 
 ```bash
-python -m pip install "git+https://github.com/ofeist/pr-review-core.git@v0.1.0#egg=pr-review-core[openai]"
+python -m pip install "git+https://github.com/ofeist/pr-review-core.git@v0.2.0#egg=pr-review-core[openai]"
 ```
 
 Required secret:

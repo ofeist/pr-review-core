@@ -31,3 +31,11 @@ Every tagged release should include:
 - User-visible changes.
 - Compatibility impact statement (`none` or explicit migration required).
 - Upgrade instructions if any behavior changed.
+
+## Consumer Upgrade Cadence
+- Recommend planned upgrades (weekly/biweekly/monthly), not ad hoc bumps.
+- Pin exact versions in CI and production integrations.
+- Before adopting a new version:
+  - review `CHANGELOG.md`
+  - run package smoke in consumer repo
+  - validate adapter/env compatibility in staging

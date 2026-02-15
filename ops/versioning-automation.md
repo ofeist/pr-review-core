@@ -1,7 +1,7 @@
 # Versioning Automation Plan
 
 ## Status
-Slice 0-4 complete. Slice 5 pending.
+Slice 0-5 complete. Slice 6 pending.
 
 ## Goal
 Implement robust release/version automation with human-in-loop approvals and policy checks.
@@ -88,9 +88,9 @@ gh label create "release:major" --color b60205 --description "Contract-sensitive
 - Should docs-only PRs default to `release:patch` or use `release:skip` (future)?
 
 ## Next Actions
-1. Update consumer pinning/upgrade docs (Slice 5).
-2. Run exit validation and rollout decision (Slice 6).
-3. Decide whether to keep manual tagging or move to merge-driven tagging.
+1. Run exit validation and rollout decision (Slice 6).
+2. Decide whether to keep manual tagging or move to merge-driven tagging.
+3. Decide whether docs-only PRs should use default `release:patch` or future `release:skip`.
 
 ## Implemented in Slice 1
 - Added release PR workflow:
@@ -132,3 +132,9 @@ gh label create "release:major" --color b60205 --description "Contract-sensitive
   - tag version equals `pyproject.toml` version
   - tag version equals `.release-please-manifest.json` version
   - `CHANGELOG.md` contains the release version section
+
+## Implemented in Slice 5
+- Updated consumer installation docs to use current pinned version examples (`v0.2.0`).
+- Added explicit consumer pinning guidance in `README.md` and `ops/consumer-integration.md`.
+- Added wheel asset install example from GitHub Releases.
+- Added upgrade cadence guidance in `ops/versioning-policy.md`.
