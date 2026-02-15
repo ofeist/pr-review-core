@@ -14,7 +14,7 @@ Define an execution-first plan for robust, human-assisted release/version automa
 - Slice 2: done
 - Slice 3: done
 - Slice 4: done
-- Slice 5: pending
+- Slice 5: done
 - Slice 6: pending
 
 Evidence:
@@ -43,6 +43,10 @@ Evidence:
   - validates tag version matches `.release-please-manifest.json`
   - validates `CHANGELOG.md` contains the tagged version section
   - release-assets workflow now includes the same consistency gate before build/publish steps
+- Consumer pinning and upgrade guidance implemented:
+  - `README.md` install examples updated to `v0.2.0` and explicit pinning notes
+  - `ops/consumer-integration.md` updated with exact pin strategy and wheel-asset install example
+  - `ops/versioning-policy.md` updated with recommended consumer upgrade cadence
 
 ## Operating Model
 - Start with human-in-loop approvals.
