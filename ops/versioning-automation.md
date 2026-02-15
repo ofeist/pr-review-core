@@ -1,7 +1,7 @@
 # Versioning Automation Plan
 
 ## Status
-Slice 0-5 complete. Slice 6 pending.
+Slice 0-6 complete. Track complete.
 
 ## Goal
 Implement robust release/version automation with human-in-loop approvals and policy checks.
@@ -88,8 +88,8 @@ gh label create "release:major" --color b60205 --description "Contract-sensitive
 - Should docs-only PRs default to `release:patch` or use `release:skip` (future)?
 
 ## Next Actions
-1. Run exit validation and rollout decision (Slice 6).
-2. Decide whether to keep manual tagging or move to merge-driven tagging.
+1. Run 1-2 additional release cycles with current guardrails.
+2. Re-evaluate manual tag vs merge-driven tag automation after additional evidence.
 3. Decide whether docs-only PRs should use default `release:patch` or future `release:skip`.
 
 ## Implemented in Slice 1
@@ -138,3 +138,9 @@ gh label create "release:major" --color b60205 --description "Contract-sensitive
 - Added explicit consumer pinning guidance in `README.md` and `ops/consumer-integration.md`.
 - Added wheel asset install example from GitHub Releases.
 - Added upgrade cadence guidance in `ops/versioning-policy.md`.
+
+## Implemented in Slice 6
+- Added exit validation and rollout decision:
+  - `ops/done/versioning-automation-exit-validation.md`
+- Recorded first live-cycle findings and mitigations.
+- Closed track with decision: keep current human-in-loop controls as default.

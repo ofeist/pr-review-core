@@ -15,7 +15,7 @@ Define an execution-first plan for robust, human-assisted release/version automa
 - Slice 3: done
 - Slice 4: done
 - Slice 5: done
-- Slice 6: pending
+- Slice 6: done
 
 Evidence:
 - `ops/versioning-automation.md` now contains locked Phase 0 decisions:
@@ -47,6 +47,9 @@ Evidence:
   - `README.md` install examples updated to `v0.2.0` and explicit pinning notes
   - `ops/consumer-integration.md` updated with exact pin strategy and wheel-asset install example
   - `ops/versioning-policy.md` updated with recommended consumer upgrade cadence
+- Exit validation and rollout decision documented:
+  - `ops/done/versioning-automation-exit-validation.md`
+  - decision recorded: GO with human-in-loop final release approval
 
 ## Operating Model
 - Start with human-in-loop approvals.
