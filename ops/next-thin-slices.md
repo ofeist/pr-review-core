@@ -36,13 +36,13 @@ Completed prior track:
 - Next / Versioning Automation Slice 3 - Tag and Release Asset Publishing: done
 - Next / Versioning Automation Slice 4 - Version Consistency Guards: done
 - Next / Versioning Automation Slice 5 - Consumer Pinning and Upgrade Guidance: done
-- Next / Versioning Automation Slice 6 - Exit Validation and Rollout Decision: queued
+- Next / Versioning Automation Slice 6 - Exit Validation and Rollout Decision: done
 
 ## Next Actions
 1. Phase 4.1 is complete; reference `ops/done/phase-4-1-exit-validation.md` for handoff details.
 2. Phase 4.2 is complete; reference `ops/done/phase-4-2-exit-validation.md` for handoff details.
 3. Start Phase 5 Slice 1 from `ops/phase-5-thin-slices.md`.
-4. Start Versioning Automation Slice 6 from `ops/versioning-automation-thin-slices.md`.
+4. Versioning Automation track complete; reference `ops/done/versioning-automation-exit-validation.md`.
 
 ## Mapping Notes
 - `ops/ROADMAP.md` remains the strategic phase plan.

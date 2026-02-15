@@ -10,6 +10,7 @@ Core planning and release docs:
 Versioning automation planning:
 - `ops/versioning-automation-thin-slices.md`
 - `ops/versioning-automation.md`
+- `ops/done/versioning-automation-exit-validation.md`
 
 Completed tracks:
 - `ops/done/`
