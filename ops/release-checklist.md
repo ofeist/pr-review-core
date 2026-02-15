@@ -24,6 +24,10 @@ Use this checklist before creating a release tag.
 - Create annotated tag: `git tag -a v<version> -m "Release v<version>"`
 - Push tag: `git push origin v<version>`
 - Confirm tag-triggered package smoke workflow succeeds.
+- Confirm tag-triggered release-assets workflow succeeds.
+- Confirm GitHub Release contains both assets:
+  - `pr_review_core-<version>-py3-none-any.whl`
+  - `pr_review_core-<version>.tar.gz`
 
 ## 5. Post-Release
 - Confirm changelog is merged on `main`.

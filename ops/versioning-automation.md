@@ -1,7 +1,7 @@
 # Versioning Automation Plan
 
 ## Status
-Slice 0-2 complete. Slice 3 pending.
+Slice 0-3 complete. Slice 4 pending.
 
 ## Goal
 Implement robust release/version automation with human-in-loop approvals and policy checks.
@@ -52,9 +52,9 @@ Approval gate:
 - Should docs-only PRs default to `release:patch` or use `release:skip` (future)?
 
 ## Next Actions
-1. Prepare Slice 3 tag/release asset publishing workflow.
-2. Add version/tag/changelog consistency guards (Slice 4).
-3. Update consumer pinning/upgrade docs (Slice 5).
+1. Add version/tag/changelog consistency guards (Slice 4).
+2. Update consumer pinning/upgrade docs (Slice 5).
+3. Run exit validation and rollout decision (Slice 6).
 
 ## Implemented in Slice 1
 - Added release PR workflow:
@@ -76,3 +76,13 @@ Approval gate:
   - contract-sensitive files require `CHANGELOG.md` update
   - changelog diff must include a migration note
 - Added explicit skip path for release automation PRs to avoid blocking release-please maintenance PR flow.
+
+## Implemented in Slice 3
+- Added release asset publishing workflow:
+  - `.github/workflows/release-assets.yml`
+- Behavior:
+  - triggers on `v*` tags and manual dispatch
+  - builds wheel/sdist artifacts
+  - runs package install + CLI smoke gate
+  - creates GitHub Release and uploads `.whl` + `.tar.gz`
+- Updated release checklist to require verification of release-assets workflow and attached artifacts.
