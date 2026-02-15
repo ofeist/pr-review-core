@@ -10,7 +10,7 @@ Define an execution-first plan for robust, human-assisted release/version automa
 
 ## Status
 - Slice 0: done
-- Slice 1: pending
+- Slice 1: done
 - Slice 2: pending
 - Slice 3: pending
 - Slice 4: pending
@@ -23,6 +23,10 @@ Evidence:
   - contract-sensitive change policy
   - human approval gates for release PR and tag/release
   - selected tooling baseline (`release-please`)
+- Release PR skeleton implemented:
+  - `.github/workflows/release-please.yml`
+  - `release-please-config.json`
+  - `.release-please-manifest.json`
 
 ## Operating Model
 - Start with human-in-loop approvals.
