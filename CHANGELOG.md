@@ -4,6 +4,28 @@ All notable changes to this project are documented in this file.
 
 This project follows Keep a Changelog style and Semantic Versioning with compatibility constraints documented in `ops/versioning-policy.md`.
 
+## [0.3.0](https://github.com/ofeist/pr-review-core/compare/v0.2.0...v0.3.0) (2026-02-15)
+
+
+### Features
+
+* **release:** add tag-version-changelog consistency guards for slice-4 ([6cd9de1](https://github.com/ofeist/pr-review-core/commit/6cd9de1b92c532ad22146507e33796edd85d3e91))
+* **release:** add tag-version-changelog consistency guards for slice-4 ([9d239cb](https://github.com/ofeist/pr-review-core/commit/9d239cb2df737a92fd113ccaeb74fa003c9f2541))
+
+
+### Bug Fixes
+
+* **release:** trigger 0.2.1 patch release ([f353c31](https://github.com/ofeist/pr-review-core/commit/f353c314a14c6df638b5dee1b5dd77303ec2a9c9))
+* **release:** trigger 0.2.1 patch release ([61a20bf](https://github.com/ofeist/pr-review-core/commit/61a20bf0da98c8685f5128e500263cda88072fa0))
+
+
+### Documentation
+
+* **versioning:** complete slice-5 consumer pinning and upgrade guidance ([7c45e12](https://github.com/ofeist/pr-review-core/commit/7c45e128a5a1bc00524de39131dc6e79c5526a9f))
+* **versioning:** complete slice-5 consumer pinning and upgrade guidance ([6f1a820](https://github.com/ofeist/pr-review-core/commit/6f1a820a6796393c6697e63a5fd3257b34d901cd))
+* **versioning:** complete slice-6 exit validation and close automati… ([81a9eeb](https://github.com/ofeist/pr-review-core/commit/81a9eeb2d3372ae763da3f76f06ce0cf86f41727))
+* **versioning:** complete slice-6 exit validation and close automation track ([4c8f2e7](https://github.com/ofeist/pr-review-core/commit/4c8f2e709cc5e9bcdadd5f32304cd232c7eca64a))
+
 ## [0.2.0](https://github.com/ofeist/pr-review-core/compare/v0.1.0...v0.2.0) (2026-02-15)
 
 
