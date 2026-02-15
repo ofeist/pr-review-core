@@ -29,6 +29,7 @@ Out of scope right now:
 - `.github/workflows/ai-review.yml`: GitHub PR review workflow
 - `.github/workflows/package-smoke.yml`: package build/install/smoke validation workflow
 - `.github/workflows/release-assets.yml`: tag-driven GitHub Release asset publishing (`.whl`/`.tar.gz`)
+- `.github/workflows/release-consistency.yml`: tag/version/changelog consistency validation
 - `adapters/github/README.md`: GitHub adapter runbook
 - `adapters/github/scripts/extract_pr_diff.py`: robust PR diff extraction script
 - `CHANGELOG.md`: release notes and user-visible changes

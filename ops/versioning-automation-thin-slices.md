@@ -13,7 +13,7 @@ Define an execution-first plan for robust, human-assisted release/version automa
 - Slice 1: done
 - Slice 2: done
 - Slice 3: done
-- Slice 4: pending
+- Slice 4: done
 - Slice 5: pending
 - Slice 6: pending
 
@@ -37,6 +37,12 @@ Evidence:
   - builds wheel/sdist on `v*` tags
   - runs package-install + CLI smoke gate before release publishing
   - creates GitHub Release and uploads `.whl` + `.tar.gz`
+- Version consistency guards implemented:
+  - `.github/workflows/release-consistency.yml`
+  - validates tag version matches `pyproject.toml`
+  - validates tag version matches `.release-please-manifest.json`
+  - validates `CHANGELOG.md` contains the tagged version section
+  - release-assets workflow now includes the same consistency gate before build/publish steps
 
 ## Operating Model
 - Start with human-in-loop approvals.

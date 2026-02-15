@@ -1,7 +1,7 @@
 # Versioning Automation Plan
 
 ## Status
-Slice 0-3 complete. Slice 4 pending.
+Slice 0-4 complete. Slice 5 pending.
 
 ## Goal
 Implement robust release/version automation with human-in-loop approvals and policy checks.
@@ -88,9 +88,9 @@ gh label create "release:major" --color b60205 --description "Contract-sensitive
 - Should docs-only PRs default to `release:patch` or use `release:skip` (future)?
 
 ## Next Actions
-1. Add version/tag/changelog consistency guards (Slice 4).
-2. Update consumer pinning/upgrade docs (Slice 5).
-3. Run exit validation and rollout decision (Slice 6).
+1. Update consumer pinning/upgrade docs (Slice 5).
+2. Run exit validation and rollout decision (Slice 6).
+3. Decide whether to keep manual tagging or move to merge-driven tagging.
 
 ## Implemented in Slice 1
 - Added release PR workflow:
@@ -122,3 +122,13 @@ gh label create "release:major" --color b60205 --description "Contract-sensitive
   - runs package install + CLI smoke gate
   - creates GitHub Release and uploads `.whl` + `.tar.gz`
 - Updated release checklist to require verification of release-assets workflow and attached artifacts.
+
+## Implemented in Slice 4
+- Added standalone consistency validation workflow:
+  - `.github/workflows/release-consistency.yml`
+- Added consistency gate directly in release publishing workflow:
+  - `.github/workflows/release-assets.yml`
+- Enforced checks:
+  - tag version equals `pyproject.toml` version
+  - tag version equals `.release-please-manifest.json` version
+  - `CHANGELOG.md` contains the release version section

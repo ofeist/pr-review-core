@@ -36,6 +36,30 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify tag/version/changelog consistency
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag_version="${RELEASE_TAG#v}"
+          pyproject_version="$(sed -n 's/^version = \"\(.*\)\"$/\1/p' pyproject.toml | head -n 1)"
+          manifest_version="$(jq -r '."."' .release-please-manifest.json)"
+
+          if [[ "$pyproject_version" != "$tag_version" ]]; then
+            echo "Mismatch: tag version ($tag_version) != pyproject version ($pyproject_version)" >&2
+            exit 1
+          fi
+
+          if [[ "$manifest_version" != "$tag_version" ]]; then
+            echo "Mismatch: tag version ($tag_version) != release-please manifest version ($manifest_version)" >&2
+            exit 1
+          fi
+
+          if ! grep -Eq "^## \[$tag_version\]" CHANGELOG.md; then
+            echo "Missing changelog section for [$tag_version] in CHANGELOG.md" >&2
+            exit 1
+          fi
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
