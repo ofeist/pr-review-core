@@ -1,7 +1,7 @@
 # Versioning Automation Plan
 
 ## Status
-Slice 0-1 complete. Slice 2 pending.
+Slice 0-2 complete. Slice 3 pending.
 
 ## Goal
 Implement robust release/version automation with human-in-loop approvals and policy checks.
@@ -52,9 +52,9 @@ Approval gate:
 - Should docs-only PRs default to `release:patch` or use `release:skip` (future)?
 
 ## Next Actions
-1. Implement Slice 2 label/policy enforcement checks.
-2. Draft release PR template and maintainer approval checklist.
-3. Prepare Slice 3 tag/release asset publishing workflow.
+1. Prepare Slice 3 tag/release asset publishing workflow.
+2. Add version/tag/changelog consistency guards (Slice 4).
+3. Update consumer pinning/upgrade docs (Slice 5).
 
 ## Implemented in Slice 1
 - Added release PR workflow:
@@ -63,3 +63,16 @@ Approval gate:
   - `release-please-config.json`
   - `.release-please-manifest.json`
 - Current mode is PR automation only (`skip-github-release: true`) to preserve human-approved tag/release flow in Phase 0.
+
+## Implemented in Slice 2
+- Added PR policy workflow:
+  - `.github/workflows/release-policy.yml`
+- Enforced exactly one release intent label on PRs:
+  - `release:patch`
+  - `release:minor`
+  - `release:major`
+- Enforced contract-sensitive policy:
+  - contract-sensitive files require `release:major`
+  - contract-sensitive files require `CHANGELOG.md` update
+  - changelog diff must include a migration note
+- Added explicit skip path for release automation PRs to avoid blocking release-please maintenance PR flow.
