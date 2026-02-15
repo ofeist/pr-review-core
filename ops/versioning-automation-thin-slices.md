@@ -9,13 +9,20 @@ Define an execution-first plan for robust, human-assisted release/version automa
 - We want automation that reduces human error without losing release control.
 
 ## Status
-- Slice 0: pending
+- Slice 0: done
 - Slice 1: pending
 - Slice 2: pending
 - Slice 3: pending
 - Slice 4: pending
 - Slice 5: pending
 - Slice 6: pending
+
+Evidence:
+- `ops/versioning-automation.md` now contains locked Phase 0 decisions:
+  - required release intent labels
+  - contract-sensitive change policy
+  - human approval gates for release PR and tag/release
+  - selected tooling baseline (`release-please`)
 
 ## Operating Model
 - Start with human-in-loop approvals.
