@@ -11,7 +11,7 @@ Define an execution-first plan for robust, human-assisted release/version automa
 ## Status
 - Slice 0: done
 - Slice 1: done
-- Slice 2: pending
+- Slice 2: done
 - Slice 3: pending
 - Slice 4: pending
 - Slice 5: pending
@@ -27,6 +27,11 @@ Evidence:
   - `.github/workflows/release-please.yml`
   - `release-please-config.json`
   - `.release-please-manifest.json`
+- Label and policy enforcement implemented:
+  - `.github/workflows/release-policy.yml`
+  - requires exactly one release label (`release:patch|release:minor|release:major`) on PRs
+  - enforces `release:major` for contract-sensitive file changes
+  - requires changelog migration note for contract-sensitive changes
 
 ## Operating Model
 - Start with human-in-loop approvals.

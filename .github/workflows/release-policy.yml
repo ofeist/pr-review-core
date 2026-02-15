@@ -1,0 +1,86 @@
+name: Release Policy
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled, unlabeled, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  release-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Enforce release labels and contract-sensitive policy
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          EVENT_PATH: ${{ github.event_path }}
+        run: |
+          set -euo pipefail
+
+          # Exempt automated release PRs created by release-please.
+          if [[ "$PR_AUTHOR" == "release-please[bot]" ]] || [[ "$HEAD_REF" == release-please--branches--main* ]] || [[ "$PR_TITLE" == chore\(release\):* ]]; then
+            echo "Release policy check skipped for release automation PR."
+            exit 0
+          fi
+
+          mapfile -t pr_labels < <(jq -r '.pull_request.labels[].name' "$EVENT_PATH")
+
+          release_labels=("release:patch" "release:minor" "release:major")
+          selected_label=""
+          release_label_count=0
+
+          for lbl in "${release_labels[@]}"; do
+            if printf '%s\n' "${pr_labels[@]}" | grep -Fxq "$lbl"; then
+              selected_label="$lbl"
+              release_label_count=$((release_label_count + 1))
+            fi
+          done
+
+          if [[ $release_label_count -ne 1 ]]; then
+            echo "Exactly one release label is required: release:patch | release:minor | release:major"
+            echo "Found $release_label_count matching labels."
+            printf 'Current labels:\n%s\n' "${pr_labels[*]:-<none>}"
+            exit 1
+          fi
+
+          mapfile -t changed_files < <(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+
+          contract_sensitive=0
+          for f in "${changed_files[@]}"; do
+            case "$f" in
+              src/core/review/cli.py|src/core/review/output_normalizer.py|src/core/review/README.md|ops/IMPLEMENTATION-GUARDRAILS.md|ops/compatibility-policy.md)
+                contract_sensitive=1
+                ;;
+            esac
+          done
+
+          if [[ $contract_sensitive -eq 1 ]]; then
+            if [[ "$selected_label" != "release:major" ]]; then
+              echo "Contract-sensitive files changed; required label is release:major."
+              exit 1
+            fi
+
+            if ! printf '%s\n' "${changed_files[@]}" | grep -Fxq "CHANGELOG.md"; then
+              echo "Contract-sensitive change requires CHANGELOG.md update with migration note."
+              exit 1
+            fi
+
+            if ! git diff "$BASE_SHA" "$HEAD_SHA" -- CHANGELOG.md | grep -Eiq '^\+.*migration'; then
+              echo "Contract-sensitive change requires a migration note in CHANGELOG.md (added line containing 'migration')."
+              exit 1
+            fi
+          fi
+
+          echo "Release policy checks passed with label: $selected_label"
