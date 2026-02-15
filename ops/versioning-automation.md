@@ -1,7 +1,7 @@
 # Versioning Automation Plan
 
 ## Status
-Placeholder (to be filled during Slice 0-2).
+Slice 0 complete. Slice 1-2 pending.
 
 ## Goal
 Implement robust release/version automation with human-in-loop approvals and policy checks.
@@ -21,8 +21,23 @@ Decision points:
 - Release PR merge approval
 - Final tag/release approval
 
+Phase 0 decisions (locked):
+- Exactly one release intent label is required on every merged PR:
+  - `release:patch`
+  - `release:minor`
+  - `release:major`
+- Contract-sensitive changes (CLI flags/markdown contract/deprecation removals) must use `release:major` and include migration notes in `CHANGELOG.md`.
+- Release automation creates/updates release PR, but does not auto-merge it.
+- Human approver merges release PR after checklist verification.
+- Tag/release remains human-approved in Phase 0.
+
+Approval gate:
+- At least one maintainer approval required on release PR.
+- `ops/release-checklist.md` must be completed before merge/tag.
+- Package smoke workflow must be green on release PR.
+
 ## Proposed Tooling
-- Release PR automation: TBD
+- Release PR automation: `release-please` (GitHub Action, Release PR mode)
 - Policy checks: GitHub Actions
 - Artifact publishing: GitHub Releases (`.whl` + `.tar.gz`)
 
@@ -32,11 +47,11 @@ Decision points:
 - Release labels and PR conventions
 
 ## Open Questions
-- Which automation engine (`release-please` vs `python-semantic-release`)?
-- Label scheme final form?
-- One-step tag from release PR or separate manual tag step?
+- Keep manual tag in Phase 0 or move to merge-triggered tag in Slice 3?
+- Should `release:major` be blocked during `0.x` unless explicit override label is present?
+- Should docs-only PRs default to `release:patch` or use `release:skip` (future)?
 
 ## Next Actions
-1. Execute Slice 0 in `ops/versioning-automation-thin-slices.md`.
-2. Choose tooling and lock policy.
-3. Implement Slice 1 workflow skeleton.
+1. Implement Slice 1 release-PR workflow skeleton.
+2. Implement Slice 2 label/policy enforcement checks.
+3. Draft release PR template and maintainer approval checklist.
