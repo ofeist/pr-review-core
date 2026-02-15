@@ -1,0 +1,89 @@
+name: Release Assets
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release (example: v0.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release-assets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
+
+    steps:
+      - name: Ensure release tag is provided
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${RELEASE_TAG:-}" ]]; then
+            echo "Release tag is required (push tag or workflow_dispatch input)." >&2
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip build
+          python -m build
+
+      - name: Install built wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv .venv-ci
+          . .venv-ci/bin/activate
+          wheel_path=$(ls dist/*.whl | head -n 1)
+          pip install --force-reinstall "$wheel_path"
+
+      - name: CLI smoke on fixture diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          . .venv-ci/bin/activate
+          tmp_dir=$(mktemp -d)
+          cp tests/review/fixtures/raw_small.diff "$tmp_dir/raw_small.diff"
+          cd "$tmp_dir"
+
+          python -m core.review.cli \
+            --input-format raw \
+            --from-file raw_small.diff \
+            --adapter fake \
+            > review.md
+
+          grep -q '^## AI Review' review.md
+          grep -q '^### Summary' review.md
+          grep -q '^### Intent' review.md
+          grep -q '^### Change Summary' review.md
+          grep -q '^### Findings' review.md
+
+      - name: Create GitHub Release and upload assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/*.whl
+            dist/*.tar.gz

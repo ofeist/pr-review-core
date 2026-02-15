@@ -28,6 +28,7 @@ Out of scope right now:
 - `src/core/review/README.md`: review module contract and CLI
 - `.github/workflows/ai-review.yml`: GitHub PR review workflow
 - `.github/workflows/package-smoke.yml`: package build/install/smoke validation workflow
+- `.github/workflows/release-assets.yml`: tag-driven GitHub Release asset publishing (`.whl`/`.tar.gz`)
 - `adapters/github/README.md`: GitHub adapter runbook
 - `adapters/github/scripts/extract_pr_diff.py`: robust PR diff extraction script
 - `CHANGELOG.md`: release notes and user-visible changes

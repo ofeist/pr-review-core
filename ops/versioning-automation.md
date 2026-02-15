@@ -1,7 +1,7 @@
 # Versioning Automation Plan
 
 ## Status
-Slice 0-2 complete. Slice 3 pending.
+Slice 0-3 complete. Slice 4 pending.
 
 ## Goal
 Implement robust release/version automation with human-in-loop approvals and policy checks.
@@ -46,15 +46,51 @@ Approval gate:
 - `CHANGELOG.md` release notes
 - Release labels and PR conventions
 
+## How to Set Release Label
+Exactly one label is required on each normal PR:
+- `release:patch`
+- `release:minor`
+- `release:major`
+
+### GitHub Web UI
+1. Open the PR page.
+2. In the right sidebar, click `Labels`.
+3. Select exactly one release label.
+4. Ensure no second `release:*` label remains.
+
+### GitHub CLI
+Set one label:
+```bash
+gh pr edit <PR_NUMBER> --add-label "release:patch"
+```
+
+Replace wrong label(s) with the correct one:
+```bash
+gh pr edit <PR_NUMBER> --remove-label "release:minor" --remove-label "release:major"
+gh pr edit <PR_NUMBER> --add-label "release:patch"
+```
+
+Check current labels:
+```bash
+gh pr view <PR_NUMBER> --json labels --jq '.labels[].name'
+```
+
+If labels are missing in the repo, create them once:
+```bash
+gh label create "release:patch" --color 0e8a16 --description "Non-breaking fixes/docs/refactors"
+gh label create "release:minor" --color 1d76db --description "Additive feature changes"
+gh label create "release:major" --color b60205 --description "Contract-sensitive or breaking changes"
+```
+
 ## Open Questions
 - Keep manual tag in Phase 0 or move to merge-triggered tag in Slice 3?
 - Should `release:major` be blocked during `0.x` unless explicit override label is present?
 - Should docs-only PRs default to `release:patch` or use `release:skip` (future)?
 
 ## Next Actions
-1. Prepare Slice 3 tag/release asset publishing workflow.
-2. Add version/tag/changelog consistency guards (Slice 4).
-3. Update consumer pinning/upgrade docs (Slice 5).
+1. Add version/tag/changelog consistency guards (Slice 4).
+2. Update consumer pinning/upgrade docs (Slice 5).
+3. Run exit validation and rollout decision (Slice 6).
 
 ## Implemented in Slice 1
 - Added release PR workflow:
@@ -76,3 +112,13 @@ Approval gate:
   - contract-sensitive files require `CHANGELOG.md` update
   - changelog diff must include a migration note
 - Added explicit skip path for release automation PRs to avoid blocking release-please maintenance PR flow.
+
+## Implemented in Slice 3
+- Added release asset publishing workflow:
+  - `.github/workflows/release-assets.yml`
+- Behavior:
+  - triggers on `v*` tags and manual dispatch
+  - builds wheel/sdist artifacts
+  - runs package install + CLI smoke gate
+  - creates GitHub Release and uploads `.whl` + `.tar.gz`
+- Updated release checklist to require verification of release-assets workflow and attached artifacts.

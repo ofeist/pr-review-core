@@ -6,6 +6,8 @@ Use this checklist before creating a release tag.
 - Confirm release branch is up to date with `main`.
 - Confirm `pyproject.toml` version is correct for intended bump.
 - Confirm `CHANGELOG.md` has release notes for the target version.
+- Confirm each normal PR has exactly one release label (`release:patch|release:minor|release:major`).
+- Labeling reference: `ops/versioning-automation.md` ("How to Set Release Label").
 
 ## 2. Validation
 - Run review suite:
@@ -24,6 +26,10 @@ Use this checklist before creating a release tag.
 - Create annotated tag: `git tag -a v<version> -m "Release v<version>"`
 - Push tag: `git push origin v<version>`
 - Confirm tag-triggered package smoke workflow succeeds.
+- Confirm tag-triggered release-assets workflow succeeds.
+- Confirm GitHub Release contains both assets:
+  - `pr_review_core-<version>-py3-none-any.whl`
+  - `pr_review_core-<version>.tar.gz`
 
 ## 5. Post-Release
 - Confirm changelog is merged on `main`.
