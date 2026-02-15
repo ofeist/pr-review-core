@@ -46,6 +46,42 @@ Approval gate:
 - `CHANGELOG.md` release notes
 - Release labels and PR conventions
 
+## How to Set Release Label
+Exactly one label is required on each normal PR:
+- `release:patch`
+- `release:minor`
+- `release:major`
+
+### GitHub Web UI
+1. Open the PR page.
+2. In the right sidebar, click `Labels`.
+3. Select exactly one release label.
+4. Ensure no second `release:*` label remains.
+
+### GitHub CLI
+Set one label:
+```bash
+gh pr edit <PR_NUMBER> --add-label "release:patch"
+```
+
+Replace wrong label(s) with the correct one:
+```bash
+gh pr edit <PR_NUMBER> --remove-label "release:minor" --remove-label "release:major"
+gh pr edit <PR_NUMBER> --add-label "release:patch"
+```
+
+Check current labels:
+```bash
+gh pr view <PR_NUMBER> --json labels --jq '.labels[].name'
+```
+
+If labels are missing in the repo, create them once:
+```bash
+gh label create "release:patch" --color 0e8a16 --description "Non-breaking fixes/docs/refactors"
+gh label create "release:minor" --color 1d76db --description "Additive feature changes"
+gh label create "release:major" --color b60205 --description "Contract-sensitive or breaking changes"
+```
+
 ## Open Questions
 - Keep manual tag in Phase 0 or move to merge-triggered tag in Slice 3?
 - Should `release:major` be blocked during `0.x` unless explicit override label is present?

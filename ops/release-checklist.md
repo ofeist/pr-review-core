@@ -6,6 +6,8 @@ Use this checklist before creating a release tag.
 - Confirm release branch is up to date with `main`.
 - Confirm `pyproject.toml` version is correct for intended bump.
 - Confirm `CHANGELOG.md` has release notes for the target version.
+- Confirm each normal PR has exactly one release label (`release:patch|release:minor|release:major`).
+- Labeling reference: `ops/versioning-automation.md` ("How to Set Release Label").
 
 ## 2. Validation
 - Run review suite:
