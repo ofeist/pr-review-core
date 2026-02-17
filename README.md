@@ -69,7 +69,7 @@ For package validation steps, see `ops/package-testing.md`.
 Install in a consumer repository:
 
 ```bash
-python -m pip install "git+https://github.com/ofeist/pr-review-core.git@v0.2.0"
+python -m pip install "git+https://github.com/ofeist/pr-review-core.git@v0.3.0"
 ```
 
 Run on a diff file:
