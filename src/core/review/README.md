@@ -27,6 +27,7 @@ Out of scope:
 - `model_adapter.py`: adapter protocol
 - `adapters/fake.py`: deterministic local adapter
 - `adapters/openai_adapter.py`: OpenAI adapter with env config
+- `adapters/anything_chat_adapter.py`: custom SSE Anything chat adapter
 - `output_normalizer.py`: canonical markdown shape enforcement
 - `noise_filter.py`: post-filter for low-signal findings
 - `chunking.py`: large-diff chunking and chunk-output merge
@@ -42,6 +43,7 @@ Out of scope:
 Notes:
 - Base install supports `--adapter fake`.
 - Base install supports `--adapter ollama`.
+- Base install supports `--adapter anything-chat`.
 - `--adapter openai` requires `OPENAI_API_KEY` and installed OpenAI extra.
 - `--adapter openai-compat` requires `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_MODEL`, and installed OpenAI extra.
 - `OPENAI_COMPAT_API_KEY` is optional and provider-specific.
@@ -56,6 +58,7 @@ Use this section as the source of truth for adapter environment variables.
 | `openai` | `OPENAI_API_KEY` | `OPENAI_MODEL` (default `gpt-4.1-mini`), `OPENAI_TIMEOUT_SECONDS` (default `30`) |
 | `openai-compat` | `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_MODEL` | `OPENAI_COMPAT_API_KEY`, `OPENAI_COMPAT_TIMEOUT_SECONDS` (default `30`), `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK` (`1\|true\|yes\|on`) |
 | `ollama` | `OLLAMA_BASE_URL`, `OLLAMA_MODEL` | `OLLAMA_TIMEOUT_SECONDS` (default `30`) |
+| `anything-chat` | `ANYTHING_CHAT_URL` | `ANYTHING_CHAT_API_KEY`, `ANYTHING_CHAT_TIMEOUT_SECONDS` (default `30`) |
 
 ## CLI Usage
 Raw diff input:
@@ -77,7 +80,7 @@ PYTHONPATH=src python -m core.review.cli --input-format raw --from-file path/to/
 ```
 
 Useful flags:
-- `--adapter fake|openai|openai-compat|ollama`
+- `--adapter fake|openai|openai-compat|ollama|anything-chat`
 - `--max-changes-per-chunk <int>`
 - `--fallback-mode on|off`
 - `--repository`, `--base-ref`, `--head-ref`
@@ -86,6 +89,7 @@ Provider notes:
 - OpenAI-compatible providers should use `.../v1` base URL.
 - Enable `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK` when `responses` output is empty and you want native Ollama fallback.
 - Use `ollama` adapter for direct `/api/generate` behavior.
+- Use `anything-chat` for custom SSE endpoints that accept `{"message": "<prompt>"}` and stream `data:` events with `textResponse` chunks.
 
 ## Exit Codes
 - `0`: success

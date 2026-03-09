@@ -14,6 +14,10 @@ from core.review.adapters.openai_compat_adapter import (
     AdapterConfigError as OpenAICompatAdapterConfigError,
     OpenAICompatModelAdapter,
 )
+from core.review.adapters.anything_chat_adapter import (
+    AdapterConfigError as AnythingChatAdapterConfigError,
+    AnythingChatModelAdapter,
+)
 from core.review.chunking import (
     build_change_summary,
     build_intent_summary,
@@ -50,6 +54,12 @@ def _adapter_registry() -> Dict[str, ModelAdapter]:
         registry["ollama"] = OllamaModelAdapter.from_env()
     except OllamaAdapterConfigError:
         # Ollama adapter is optional in local/test runs.
+        pass
+
+    try:
+        registry["anything-chat"] = AnythingChatModelAdapter.from_env()
+    except AnythingChatAdapterConfigError:
+        # Anything chat adapter is optional in local/test runs.
         pass
 
     return registry
