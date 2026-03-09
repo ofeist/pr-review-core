@@ -5,6 +5,8 @@ build/
 dist/
 *.egg-info/
 .venv/
+.venv-build/
+.venv-install/
 .venv-smoke/
 .venv-consumer/
 .venv-exit/

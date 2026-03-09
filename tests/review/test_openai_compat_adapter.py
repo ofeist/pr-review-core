@@ -26,8 +26,24 @@ class _FakeResponsesApi:
 
 
 class _FakeClient:
-    def __init__(self, responses_api):
+    def __init__(self, responses_api, chat_completions_api=None):
         self.responses = responses_api
+        self.chat = SimpleNamespace(
+            completions=chat_completions_api or _FakeChatCompletionsApi()
+        )
+
+
+class _FakeChatCompletionsApi:
+    def __init__(self, response_to_return=None, error_to_raise=None):
+        self.response_to_return = response_to_return
+        self.error_to_raise = error_to_raise
+        self.last_kwargs = None
+
+    def create(self, **kwargs):
+        self.last_kwargs = kwargs
+        if self.error_to_raise is not None:
+            raise self.error_to_raise
+        return self.response_to_return
 
 
 class _FakeOpenAIAPIError(Exception):
@@ -202,6 +218,46 @@ class OpenAICompatAdapterRuntimeTest(unittest.TestCase):
         with self.assertRaises(AdapterRuntimeError) as ctx:
             adapter.generate_review("prompt text")
         self.assertIn("OpenAI-compatible request failed:", str(ctx.exception))
+
+    def test_generate_review_falls_back_to_chat_completions_on_not_found(self) -> None:
+        responses_api = _FakeResponsesApi(error_to_raise=_FakeOpenAIAPIError("Error code: 404 - Not Found"))
+        chat_api = _FakeChatCompletionsApi(
+            response_to_return=SimpleNamespace(
+                choices=[
+                    SimpleNamespace(
+                        message=SimpleNamespace(content="## AI Review\n\n### Summary\nchat fallback ok")
+                    )
+                ]
+            )
+        )
+        adapter = OpenAICompatModelAdapter(
+            base_url="http://localhost:11434/v1",
+            model="chat",
+            timeout_seconds=19,
+            client=_FakeClient(responses_api, chat_api),
+        )
+
+        output = adapter.generate_review("prompt text")
+
+        self.assertIn("chat fallback ok", output)
+        self.assertEqual(chat_api.last_kwargs["model"], "chat")
+        self.assertEqual(chat_api.last_kwargs["timeout"], 19)
+        self.assertEqual(chat_api.last_kwargs["messages"][0]["content"], "prompt text")
+
+    def test_generate_review_wraps_chat_completion_fallback_errors(self) -> None:
+        responses_api = _FakeResponsesApi(error_to_raise=_FakeOpenAIAPIError("404 responses unsupported"))
+        chat_api = _FakeChatCompletionsApi(error_to_raise=_FakeOpenAIAPIError("chat failure"))
+        adapter = OpenAICompatModelAdapter(
+            base_url="http://localhost:11434/v1",
+            model="chat",
+            client=_FakeClient(responses_api, chat_api),
+        )
+
+        with self.assertRaises(AdapterRuntimeError) as ctx:
+            adapter.generate_review("prompt text")
+
+        self.assertIn("OpenAI-compatible request failed:", str(ctx.exception))
+        self.assertIn("chat failure", str(ctx.exception))
 
     def test_generate_review_does_not_wrap_unexpected_programming_errors(self) -> None:
         responses_api = _FakeResponsesApi(error_to_raise=ValueError("bad local wiring"))

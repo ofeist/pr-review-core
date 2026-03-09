@@ -64,22 +64,23 @@ class OpenAICompatModelAdapter:
         client = self._get_client()
 
         try:
-            response = client.responses.create(
-                model=self.model,
-                input=[
-                    {
-                        "role": "user",
-                        "content": [{"type": "input_text", "text": prompt}],
-                    }
-                ],
-                max_output_tokens=self.max_output_tokens,
-                timeout=self.timeout_seconds,
-            )
+            response = self._generate_with_responses_api(client, prompt)
         except Exception as exc:
-            if not self._is_expected_client_error(exc):
+            if self._should_fallback_to_chat_completions(exc):
+                try:
+                    response = self._generate_with_chat_completions_api(client, prompt)
+                except Exception as chat_exc:
+                    if not self._is_expected_client_error(chat_exc):
+                        raise
+                    safe_detail = self._sanitize_error_text(str(chat_exc))
+                    raise AdapterRuntimeError(
+                        f"OpenAI-compatible request failed: {safe_detail}"
+                    ) from chat_exc
+            elif not self._is_expected_client_error(exc):
                 raise
-            safe_detail = self._sanitize_error_text(str(exc))
-            raise AdapterRuntimeError(f"OpenAI-compatible request failed: {safe_detail}") from exc
+            else:
+                safe_detail = self._sanitize_error_text(str(exc))
+                raise AdapterRuntimeError(f"OpenAI-compatible request failed: {safe_detail}") from exc
 
         text = self._extract_text(response)
         if not text and self._is_ollama_fallback_enabled():
@@ -110,6 +111,26 @@ class OpenAICompatModelAdapter:
         self.client = OpenAI(api_key=api_key, base_url=self.base_url)
         return self.client
 
+    def _generate_with_responses_api(self, client: Any, prompt: str) -> Any:
+        return client.responses.create(
+            model=self.model,
+            input=[
+                {
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": prompt}],
+                }
+            ],
+            max_output_tokens=self.max_output_tokens,
+            timeout=self.timeout_seconds,
+        )
+
+    def _generate_with_chat_completions_api(self, client: Any, prompt: str) -> Any:
+        return client.chat.completions.create(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            timeout=self.timeout_seconds,
+        )
+
     def _is_expected_client_error(self, exc: Exception) -> bool:
         if isinstance(exc, (TimeoutError, ConnectionError, OSError)):
             return True
@@ -123,6 +144,16 @@ class OpenAICompatModelAdapter:
             or "connection" in class_name
             or "rate" in class_name
             or "apierror" in class_name
+        )
+
+    @staticmethod
+    def _should_fallback_to_chat_completions(exc: Exception) -> bool:
+        text = str(exc).lower()
+        return (
+            "404" in text
+            or "not found" in text
+            or "responses" in text
+            or "unsupported" in text
         )
 
     @staticmethod
@@ -189,6 +220,36 @@ class OpenAICompatModelAdapter:
         output_text = getattr(response, "output_text", None)
         if isinstance(output_text, str) and output_text.strip():
             return output_text.strip()
+
+        choices = getattr(response, "choices", None)
+        if isinstance(choices, list):
+            parts = []
+            for choice in choices:
+                message = getattr(choice, "message", None)
+                if message is None and isinstance(choice, dict):
+                    message = choice.get("message")
+                if message is None:
+                    continue
+
+                content = getattr(message, "content", None)
+                if content is None and isinstance(message, dict):
+                    content = message.get("content")
+
+                if isinstance(content, str) and content.strip():
+                    parts.append(content.strip())
+                    continue
+
+                if isinstance(content, list):
+                    for item in content:
+                        text = getattr(item, "text", None)
+                        if text is None and isinstance(item, dict):
+                            text = item.get("text")
+                        if isinstance(text, str) and text.strip():
+                            parts.append(text.strip())
+
+            combined = "\n".join(parts).strip()
+            if combined:
+                return combined
 
         output = getattr(response, "output", None)
         if not isinstance(output, list):
