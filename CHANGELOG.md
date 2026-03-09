@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 This project follows Keep a Changelog style and Semantic Versioning with compatibility constraints documented in `ops/versioning-policy.md`.
 
+## [0.3.1](https://github.com/ofeist/pr-review-core/compare/v0.3.0...v0.3.1) (2026-03-09)
+
+
+### Documentation
+
+* **readme:** update consumer install and pin examples to v0.3.0 ([65c3441](https://github.com/ofeist/pr-review-core/commit/65c344198bd0d8a13f877dc4c90a38cd5d1c9cf3))
+
 ## [0.3.0](https://github.com/ofeist/pr-review-core/compare/v0.2.0...v0.3.0) (2026-02-15)
 
 
