@@ -1,4 +1,4 @@
-"""Adapter for custom workspace chat streaming endpoints."""
+"""Adapter for custom Anything chat streaming endpoints."""
 
 import json
 import os
@@ -15,31 +15,31 @@ class AdapterRuntimeError(Exception):
 
 
 @dataclass
-class WorkspaceChatModelAdapter:
-    """Model adapter for custom SSE-style workspace chat endpoints."""
+class AnythingChatModelAdapter:
+    """Model adapter for custom SSE-style Anything chat endpoints."""
 
     url: str
     api_key: str = ""
     timeout_seconds: int = 30
-    name: str = "workspace-chat"
+    name: str = "anything-chat"
 
     @classmethod
-    def from_env(cls) -> "WorkspaceChatModelAdapter":
-        url = os.getenv("WORKSPACE_CHAT_URL", "").strip()
-        api_key = os.getenv("WORKSPACE_CHAT_API_KEY", "").strip()
-        timeout_raw = os.getenv("WORKSPACE_CHAT_TIMEOUT_SECONDS", "").strip()
+    def from_env(cls) -> "AnythingChatModelAdapter":
+        url = os.getenv("ANYTHING_CHAT_URL", "").strip()
+        api_key = os.getenv("ANYTHING_CHAT_API_KEY", "").strip()
+        timeout_raw = os.getenv("ANYTHING_CHAT_TIMEOUT_SECONDS", "").strip()
 
         if not url:
-            raise AdapterConfigError("WORKSPACE_CHAT_URL is required for workspace-chat adapter.")
+            raise AdapterConfigError("ANYTHING_CHAT_URL is required for anything-chat adapter.")
 
         timeout_seconds = 30
         if timeout_raw:
             try:
                 timeout_seconds = int(timeout_raw)
             except ValueError as exc:
-                raise AdapterConfigError("WORKSPACE_CHAT_TIMEOUT_SECONDS must be an integer.") from exc
+                raise AdapterConfigError("ANYTHING_CHAT_TIMEOUT_SECONDS must be an integer.") from exc
         if timeout_seconds <= 0:
-            raise AdapterConfigError("WORKSPACE_CHAT_TIMEOUT_SECONDS must be > 0.")
+            raise AdapterConfigError("ANYTHING_CHAT_TIMEOUT_SECONDS must be > 0.")
 
         return cls(url=url, api_key=api_key, timeout_seconds=timeout_seconds)
 
@@ -62,11 +62,11 @@ class WorkspaceChatModelAdapter:
             with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
                 body = response.read().decode("utf-8", errors="replace")
         except Exception as exc:  # pragma: no cover - defensive wrapper
-            raise AdapterRuntimeError(f"Workspace chat request failed: {exc}") from exc
+            raise AdapterRuntimeError(f"Anything chat request failed: {exc}") from exc
 
         text = self._extract_text_from_sse(body)
         if not text:
-            raise AdapterRuntimeError("Workspace chat response did not contain text output.")
+            raise AdapterRuntimeError("Anything chat response did not contain text output.")
         return text
 
     @staticmethod
@@ -87,8 +87,8 @@ class WorkspaceChatModelAdapter:
                 continue
 
             if event.get("error") is True:
-                message = event.get("message") or event.get("detail") or "Unknown workspace chat error."
-                raise AdapterRuntimeError(f"Workspace chat stream returned an error: {message}")
+                message = event.get("message") or event.get("detail") or "Unknown Anything chat error."
+                raise AdapterRuntimeError(f"Anything chat stream returned an error: {message}")
 
             text = event.get("textResponse")
             if isinstance(text, str):

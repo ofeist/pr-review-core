@@ -3,10 +3,10 @@ import unittest
 from urllib.error import URLError
 from unittest.mock import patch
 
-from core.review.adapters.workspace_chat_adapter import (
+from core.review.adapters.anything_chat_adapter import (
     AdapterConfigError,
     AdapterRuntimeError,
-    WorkspaceChatModelAdapter,
+    AnythingChatModelAdapter,
 )
 
 
@@ -25,23 +25,23 @@ class _FakeHttpResponse:
         return False
 
 
-class WorkspaceChatAdapterConfigTest(unittest.TestCase):
+class AnythingChatAdapterConfigTest(unittest.TestCase):
     def test_from_env_requires_url(self) -> None:
-        with patch.dict(os.environ, {"WORKSPACE_CHAT_URL": ""}, clear=True):
+        with patch.dict(os.environ, {"ANYTHING_CHAT_URL": ""}, clear=True):
             with self.assertRaises(AdapterConfigError):
-                WorkspaceChatModelAdapter.from_env()
+                AnythingChatModelAdapter.from_env()
 
     def test_from_env_reads_values(self) -> None:
         with patch.dict(
             os.environ,
             {
-                "WORKSPACE_CHAT_URL": "http://localhost:5001/api/workspace/demo/thread/123/stream-chat",
-                "WORKSPACE_CHAT_API_KEY": "test-key",
-                "WORKSPACE_CHAT_TIMEOUT_SECONDS": "45",
+                "ANYTHING_CHAT_URL": "http://localhost:5001/api/workspace/demo/thread/123/stream-chat",
+                "ANYTHING_CHAT_API_KEY": "test-key",
+                "ANYTHING_CHAT_TIMEOUT_SECONDS": "45",
             },
             clear=True,
         ):
-            adapter = WorkspaceChatModelAdapter.from_env()
+            adapter = AnythingChatModelAdapter.from_env()
 
         self.assertEqual(adapter.url, "http://localhost:5001/api/workspace/demo/thread/123/stream-chat")
         self.assertEqual(adapter.api_key, "test-key")
@@ -51,24 +51,24 @@ class WorkspaceChatAdapterConfigTest(unittest.TestCase):
         with patch.dict(
             os.environ,
             {
-                "WORKSPACE_CHAT_URL": "http://localhost:5001/api/workspace/demo/thread/123/stream-chat",
-                "WORKSPACE_CHAT_TIMEOUT_SECONDS": "abc",
+                "ANYTHING_CHAT_URL": "http://localhost:5001/api/workspace/demo/thread/123/stream-chat",
+                "ANYTHING_CHAT_TIMEOUT_SECONDS": "abc",
             },
             clear=True,
         ):
             with self.assertRaises(AdapterConfigError):
-                WorkspaceChatModelAdapter.from_env()
+                AnythingChatModelAdapter.from_env()
 
 
-class WorkspaceChatAdapterRuntimeTest(unittest.TestCase):
+class AnythingChatAdapterRuntimeTest(unittest.TestCase):
     def test_generate_review_requires_non_empty_prompt(self) -> None:
-        adapter = WorkspaceChatModelAdapter(url="http://localhost:5001/api/workspace/demo/thread/123/stream-chat")
+        adapter = AnythingChatModelAdapter(url="http://localhost:5001/api/workspace/demo/thread/123/stream-chat")
 
         with self.assertRaises(AdapterRuntimeError):
             adapter.generate_review("   ")
 
     def test_generate_review_posts_prompt_and_collects_stream(self) -> None:
-        adapter = WorkspaceChatModelAdapter(
+        adapter = AnythingChatModelAdapter(
             url="http://localhost:5001/api/workspace/demo/thread/123/stream-chat",
             api_key="test-key",
             timeout_seconds=12,
@@ -80,7 +80,7 @@ class WorkspaceChatAdapterRuntimeTest(unittest.TestCase):
         )
 
         with patch(
-            "core.review.adapters.workspace_chat_adapter.urllib.request.urlopen",
+            "core.review.adapters.anything_chat_adapter.urllib.request.urlopen",
             return_value=_FakeHttpResponse(body),
         ) as urlopen_mock:
             output = adapter.generate_review("prompt text")
@@ -96,11 +96,11 @@ class WorkspaceChatAdapterRuntimeTest(unittest.TestCase):
         self.assertEqual(urlopen_mock.call_args.kwargs["timeout"], 12)
 
     def test_generate_review_allows_missing_auth(self) -> None:
-        adapter = WorkspaceChatModelAdapter(url="http://localhost:5001/api/workspace/demo/thread/123/stream-chat")
+        adapter = AnythingChatModelAdapter(url="http://localhost:5001/api/workspace/demo/thread/123/stream-chat")
         body = 'data: {"type":"textResponseChunk","textResponse":"hello","close":true,"error":false}\n'
 
         with patch(
-            "core.review.adapters.workspace_chat_adapter.urllib.request.urlopen",
+            "core.review.adapters.anything_chat_adapter.urllib.request.urlopen",
             return_value=_FakeHttpResponse(body),
         ) as urlopen_mock:
             output = adapter.generate_review("prompt text")
@@ -110,36 +110,36 @@ class WorkspaceChatAdapterRuntimeTest(unittest.TestCase):
         self.assertNotIn("Authorization", request.headers)
 
     def test_generate_review_wraps_transport_errors(self) -> None:
-        adapter = WorkspaceChatModelAdapter(url="http://localhost:5001/api/workspace/demo/thread/123/stream-chat")
+        adapter = AnythingChatModelAdapter(url="http://localhost:5001/api/workspace/demo/thread/123/stream-chat")
 
         with patch(
-            "core.review.adapters.workspace_chat_adapter.urllib.request.urlopen",
+            "core.review.adapters.anything_chat_adapter.urllib.request.urlopen",
             side_effect=URLError("network down"),
         ):
             with self.assertRaises(AdapterRuntimeError) as ctx:
                 adapter.generate_review("prompt text")
 
-        self.assertIn("Workspace chat request failed:", str(ctx.exception))
+        self.assertIn("Anything chat request failed:", str(ctx.exception))
 
     def test_generate_review_raises_on_stream_error_event(self) -> None:
-        adapter = WorkspaceChatModelAdapter(url="http://localhost:5001/api/workspace/demo/thread/123/stream-chat")
+        adapter = AnythingChatModelAdapter(url="http://localhost:5001/api/workspace/demo/thread/123/stream-chat")
         body = 'data: {"type":"textResponseChunk","message":"bad upstream","close":true,"error":true}\n'
 
         with patch(
-            "core.review.adapters.workspace_chat_adapter.urllib.request.urlopen",
+            "core.review.adapters.anything_chat_adapter.urllib.request.urlopen",
             return_value=_FakeHttpResponse(body),
         ):
             with self.assertRaises(AdapterRuntimeError) as ctx:
                 adapter.generate_review("prompt text")
 
-        self.assertIn("Workspace chat stream returned an error:", str(ctx.exception))
+        self.assertIn("Anything chat stream returned an error:", str(ctx.exception))
 
     def test_generate_review_empty_response_is_controlled_error(self) -> None:
-        adapter = WorkspaceChatModelAdapter(url="http://localhost:5001/api/workspace/demo/thread/123/stream-chat")
+        adapter = AnythingChatModelAdapter(url="http://localhost:5001/api/workspace/demo/thread/123/stream-chat")
         body = 'data: {"type":"finalizeResponseStream","close":true,"error":false}\n'
 
         with patch(
-            "core.review.adapters.workspace_chat_adapter.urllib.request.urlopen",
+            "core.review.adapters.anything_chat_adapter.urllib.request.urlopen",
             return_value=_FakeHttpResponse(body),
         ):
             with self.assertRaises(AdapterRuntimeError) as ctx:

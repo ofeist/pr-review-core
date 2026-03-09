@@ -14,9 +14,9 @@ from core.review.adapters.openai_compat_adapter import (
     AdapterConfigError as OpenAICompatAdapterConfigError,
     OpenAICompatModelAdapter,
 )
-from core.review.adapters.workspace_chat_adapter import (
-    AdapterConfigError as WorkspaceChatAdapterConfigError,
-    WorkspaceChatModelAdapter,
+from core.review.adapters.anything_chat_adapter import (
+    AdapterConfigError as AnythingChatAdapterConfigError,
+    AnythingChatModelAdapter,
 )
 from core.review.chunking import (
     build_change_summary,
@@ -57,9 +57,9 @@ def _adapter_registry() -> Dict[str, ModelAdapter]:
         pass
 
     try:
-        registry["workspace-chat"] = WorkspaceChatModelAdapter.from_env()
-    except WorkspaceChatAdapterConfigError:
-        # Workspace chat adapter is optional in local/test runs.
+        registry["anything-chat"] = AnythingChatModelAdapter.from_env()
+    except AnythingChatAdapterConfigError:
+        # Anything chat adapter is optional in local/test runs.
         pass
 
     return registry

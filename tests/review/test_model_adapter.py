@@ -61,16 +61,16 @@ class PipelineSmokeTest(unittest.TestCase):
             adapter = get_adapter("ollama")
         self.assertEqual(adapter.name, "ollama")
 
-    def test_get_adapter_returns_workspace_chat_when_env_configured(self) -> None:
+    def test_get_adapter_returns_anything_chat_when_env_configured(self) -> None:
         with patch.dict(
             os.environ,
             {
-                "WORKSPACE_CHAT_URL": "http://localhost:5001/api/workspace/demo/thread/123/stream-chat",
+                "ANYTHING_CHAT_URL": "http://localhost:5001/api/workspace/demo/thread/123/stream-chat",
             },
             clear=False,
         ):
-            adapter = get_adapter("workspace-chat")
-        self.assertEqual(adapter.name, "workspace-chat")
+            adapter = get_adapter("anything-chat")
+        self.assertEqual(adapter.name, "anything-chat")
 
     def test_unknown_adapter_lists_ollama_when_available(self) -> None:
         with patch.dict(
@@ -88,11 +88,11 @@ class PipelineSmokeTest(unittest.TestCase):
         self.assertIn("fake", message)
         self.assertIn("ollama", message)
 
-    def test_unknown_adapter_lists_workspace_chat_when_available(self) -> None:
+    def test_unknown_adapter_lists_anything_chat_when_available(self) -> None:
         with patch.dict(
             os.environ,
             {
-                "WORKSPACE_CHAT_URL": "http://localhost:5001/api/workspace/demo/thread/123/stream-chat",
+                "ANYTHING_CHAT_URL": "http://localhost:5001/api/workspace/demo/thread/123/stream-chat",
             },
             clear=False,
         ):
@@ -101,7 +101,7 @@ class PipelineSmokeTest(unittest.TestCase):
         message = str(ctx.exception)
         self.assertIn("Known adapters:", message)
         self.assertIn("fake", message)
-        self.assertIn("workspace-chat", message)
+        self.assertIn("anything-chat", message)
 
     def test_run_review_fake_adapter_end_to_end(self) -> None:
         files = [
