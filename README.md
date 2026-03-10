@@ -78,7 +78,7 @@ Run on a diff file:
 python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapter fake
 ```
 
-For full GitHub and Bitbucket interim integration patterns, see `ops/consumer-integration.md`.
+For full GitHub and Bitbucket interim integration patterns, including a Jenkins + Bitbucket Data Center example, see `ops/consumer-integration.md`.
 
 ### Version Pinning (Consumer Guidance)
 - Pin exact versions for reproducibility (`==` or exact git tag).

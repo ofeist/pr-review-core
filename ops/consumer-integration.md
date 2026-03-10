@@ -145,6 +145,92 @@ curl -fsSL \
 
 Keep Bitbucket-specific logic (auth, retries, pagination, comment upsert strategy) in your wrapper scripts/services, not in `core/`.
 
+## 4.1 Bitbucket Data Center with Jenkins
+
+Recommended split:
+- Jenkins handles PR build orchestration.
+- Bitbucket Data Center provides PR metadata/diff/comment APIs.
+- `pr-review-core` generates review markdown from raw diff input.
+
+Typical flow:
+1. Jenkins checks out the PR source branch and fetches the target branch.
+2. Jenkins builds a raw diff with `git diff origin/<target>...HEAD`.
+3. Jenkins runs `python -m core.review.cli` and writes `review.md`.
+4. Jenkins archives `review.md` and optionally posts it to the Bitbucket PR.
+
+Minimal Jenkins pipeline example:
+
+```groovy
+pipeline {
+  agent any
+
+  environment {
+    PR_REVIEW_VERSION = '0.3.0'
+    OPENAI_COMPAT_BASE_URL = credentials('openai_compat_base_url')
+    OPENAI_COMPAT_API_KEY = credentials('openai_compat_api_key')
+    OPENAI_COMPAT_MODEL = 'qwen3:32b'
+    OPENAI_COMPAT_TIMEOUT_SECONDS = '300'
+  }
+
+  stages {
+    stage('Setup') {
+      steps {
+        sh '''
+          python3 -m venv .venv-pr-review
+          . .venv-pr-review/bin/activate
+          python -m pip install --upgrade pip
+          python -m pip install "https://github.com/ofeist/pr-review-core/releases/download/v${PR_REVIEW_VERSION}/pr_review_core-${PR_REVIEW_VERSION}-py3-none-any.whl[openai]"
+        '''
+      }
+    }
+
+    stage('Build Diff') {
+      steps {
+        sh '''
+          git fetch origin "${CHANGE_TARGET}"
+          git diff --no-color "origin/${CHANGE_TARGET}...HEAD" > pr.diff
+        '''
+      }
+    }
+
+    stage('Run Review') {
+      steps {
+        sh '''
+          . .venv-pr-review/bin/activate
+          python -m core.review.cli \
+            --input-format raw \
+            --from-file pr.diff \
+            --adapter openai_compat \
+            > review.md
+        '''
+      }
+    }
+
+    stage('Archive Review') {
+      steps {
+        archiveArtifacts artifacts: 'review.md', fingerprint: true
+      }
+    }
+  }
+}
+```
+
+To publish back to Bitbucket DC, add a final step that posts `review.md` to the PR comments endpoint:
+
+```bash
+curl -fsSL \
+  -H "Authorization: Bearer ${BITBUCKET_TOKEN}" \
+  -H 'Content-Type: application/json' \
+  -X POST \
+  -d "{\"text\": $(jq -Rs . < review.md)}" \
+  "${BITBUCKET_BASE_URL}/rest/api/1.0/projects/${BITBUCKET_PROJECT}/repos/${BITBUCKET_REPO}/pull-requests/${BITBUCKET_PR_ID}/comments"
+```
+
+Operational guidance:
+- Start by archiving `review.md` only.
+- Add PR comment posting after the review output looks acceptable.
+- Keep Bitbucket/Jenkins-specific retry/upsert logic outside `core/`.
+
 ## 5. Validation Commands
 
 These commands are used to validate consumer docs against fixture input:
