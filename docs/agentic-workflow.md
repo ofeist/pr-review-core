@@ -107,6 +107,10 @@ git push origin feature/<task-slug>
   - required release labels
   - compatibility-sensitive file rules
   - changelog or migration-note requirements when contract-sensitive files changed
+- keep detailed release/versioning rules in:
+  - `ops/versioning-policy.md`
+  - `ops/compatibility-policy.md`
+  - `.github/workflows/release-policy.yml`
 
 ## 11. Merge only when evidence is good enough
 - code correct
