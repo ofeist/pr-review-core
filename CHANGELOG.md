@@ -110,7 +110,10 @@ This project follows Keep a Changelog style and Semantic Versioning with compati
 
 ## [Unreleased]
 ### Added
-- _No entries yet._
+- Add `--agentic-demo` mode to `core.review.cli` for deterministic staged showcase output (`Plan`, `Review`, `QA`, `Final Recommendation`).
+
+### Migration
+- No migration required for existing consumers. Default CLI behavior and canonical review output remain unchanged unless `--agentic-demo` is explicitly used.
 
 ## [0.1.0] - 2026-02-12
 ### Added
