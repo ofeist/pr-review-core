@@ -103,6 +103,10 @@ git cherry-pick <review-or-qa-commit>
 git push origin feature/<task-slug>
 ```
 - then PR to `main`
+- check repo PR policy early:
+  - required release labels
+  - compatibility-sensitive file rules
+  - changelog or migration-note requirements when contract-sensitive files changed
 
 ## 11. Merge only when evidence is good enough
 - code correct
@@ -110,6 +114,13 @@ git push origin feature/<task-slug>
 - rollout risks understood
 - docs/config/generated artifacts updated if needed
 - for showcase slices, limited workflow or documentation updates that directly explain the showcased flow can remain in scope if that intent is explicit
+
+## 12. Reset Workdirs After Merge
+- delete the feature branch only after no workdir still uses it
+- only one worktree can own a branch name at a time
+- when `main` is blocked, detach the workdir currently holding it before attaching `main` elsewhere
+- keep `repo-review/` and `repo-qa/` detached when idle unless they actively need a branch
+- after merge, refresh other workdirs with `git fetch origin`
 
 That is the normal loop.
 
@@ -124,3 +135,4 @@ That is the normal loop.
 8. QA
 9. cherry-pick fixes
 10. PR
+11. reset workdirs after merge
