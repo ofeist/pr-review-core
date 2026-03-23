@@ -77,6 +77,7 @@ If the workflow docs/templates themselves are new and other workdirs need them, 
   - `agentic/prompts/REVIEWER_PROMPT.txt`
 - produce findings first
 - optional small review patch
+- not every finding must be accepted, but any rejected finding should be recorded with explicit rationale in the handoff or PR notes
 
 ## 8. QA in `repo-qa/`
 - validate:
@@ -108,6 +109,7 @@ git push origin feature/<task-slug>
 - checks run
 - rollout risks understood
 - docs/config/generated artifacts updated if needed
+- for showcase slices, limited workflow or documentation updates that directly explain the showcased flow can remain in scope if that intent is explicit
 
 That is the normal loop.
 
