@@ -1,0 +1,1 @@
+Read AGENTS.md and the task document. Break the task into a minimal implementation slice. Identify the expected branch, affected artifacts, main risks, out-of-scope items, and suggested verification. Produce a short execution plan only.
