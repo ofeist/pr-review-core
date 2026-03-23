@@ -71,6 +71,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="on",
         help="Fallback behavior when full-diff review fails.",
     )
+    parser.add_argument(
+        "--agentic-demo",
+        action="store_true",
+        help="Render deterministic staged demo output (plan/review/qa/final recommendation).",
+    )
     return parser
 
 
@@ -115,6 +120,7 @@ def main(argv: List[str] | None = None) -> int:
             pr_body=args.pr_body,
             max_changes_per_chunk=args.max_changes_per_chunk,
             fallback_enabled=(args.fallback_mode == "on"),
+            agentic_demo=args.agentic_demo,
         )
     except Exception as exc:
         print(f"Error: review generation failed ({exc})", file=sys.stderr)
