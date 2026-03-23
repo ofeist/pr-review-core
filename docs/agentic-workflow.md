@@ -2,6 +2,15 @@
 
 Use the workflow like this:
 
+## Workdirs
+- `repo/`, `repo-review/`, and `repo-qa/` are the working directories used by the workflow.
+- In practice these are usually Git worktrees, not three independent clones.
+- Typical local setup:
+  - `repo/` owns the active `feature/*` branch
+  - `repo-review/` stays on `main`
+  - `repo-qa/` stays detached or on `main`
+- Review and QA should inspect `origin/feature/<task-slug>` and only create `review/*` or `qa/*` branches when they need to produce a patch.
+
 ## 1. Pick one thin slice
 - one concrete change only
 - not "improve everything"
@@ -21,6 +30,7 @@ Use the workflow like this:
   - `Scope`
   - `Out of scope`
   - `Verification plan`
+- if the task is already a single thin slice, the task doc is enough; do not create another "thin slices" planning document unless the work is large enough to need one
 
 ## 3. Create the owner feature branch
 - in `repo/`
@@ -28,6 +38,8 @@ Use the workflow like this:
 git checkout -b feature/<task-slug>
 git push -u origin feature/<task-slug>
 ```
+
+If the workflow docs/templates themselves are new and other workdirs need them, commit and push those baseline docs on `main` first. Product/code changes should still go on the feature branch.
 
 ## 4. Run the planner
 - use:
@@ -65,6 +77,7 @@ git push -u origin feature/<task-slug>
   - `agentic/prompts/REVIEWER_PROMPT.txt`
 - produce findings first
 - optional small review patch
+- not every finding must be accepted, but any rejected finding should be recorded with explicit rationale in the handoff or PR notes
 
 ## 8. QA in `repo-qa/`
 - validate:
@@ -96,6 +109,7 @@ git push origin feature/<task-slug>
 - checks run
 - rollout risks understood
 - docs/config/generated artifacts updated if needed
+- for showcase slices, limited workflow or documentation updates that directly explain the showcased flow can remain in scope if that intent is explicit
 
 That is the normal loop.
 

@@ -27,6 +27,15 @@ class MarkdownSnapshotTest(unittest.TestCase):
 
         self.assertEqual(output, expected)
 
+    def test_snapshot_fake_agentic_demo_review_from_raw_small(self) -> None:
+        raw = self._read_fixture("raw_small.diff")
+        files = filter_diff_files(parse_diff(raw))
+
+        output = run_review(files, adapter_name="fake", agentic_demo=True)
+        expected = self._read_snapshot("fake_agentic_demo_raw_small.md")
+
+        self.assertEqual(output, expected)
+
     def test_snapshot_normalize_empty_output(self) -> None:
         empty = self._read_fixture("model_empty_output.md")
         output = normalize_review_markdown(empty)

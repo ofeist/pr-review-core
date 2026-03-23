@@ -22,6 +22,7 @@ The following flags are contract-critical and should not be removed/renamed with
 - `--pr-body`
 - `--max-changes-per-chunk`
 - `--fallback-mode`
+- `--agentic-demo`
 
 Defaults may evolve, but semantic intent of these flags should remain stable.
 
