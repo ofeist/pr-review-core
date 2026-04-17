@@ -4,6 +4,19 @@ All notable changes to this project are documented in this file.
 
 This project follows Keep a Changelog style and Semantic Versioning with compatibility constraints documented in `ops/versioning-policy.md`.
 
+## [0.5.0](https://github.com/ofeist/pr-review-core/compare/v0.4.0...v0.5.0) (2026-04-17)
+
+
+### Features
+
+* **adapter:** add env-configurable max output tokens ([f8c5e6f](https://github.com/ofeist/pr-review-core/commit/f8c5e6fcb8e6dbc6c63a094b18bd7626a1606dfd))
+* **adapter:** add env-configurable max output tokens ([785b9f4](https://github.com/ofeist/pr-review-core/commit/785b9f4a3a689b2ae23606277288cd20faa6bc1d))
+
+
+### Documentation
+
+* **ops:** plan env-configurable max output tokens ([c574746](https://github.com/ofeist/pr-review-core/commit/c5747463a9f8ed46991a3fc50a468d3e7b645f69))
+
 ## [0.4.0](https://github.com/ofeist/pr-review-core/compare/v0.3.1...v0.4.0) (2026-04-17)
 
 
