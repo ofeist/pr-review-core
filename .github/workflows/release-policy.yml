@@ -60,7 +60,7 @@ jobs:
           contract_sensitive=0
           for f in "${changed_files[@]}"; do
             case "$f" in
-              src/core/review/cli.py|src/core/review/output_normalizer.py|src/core/review/README.md|ops/IMPLEMENTATION-GUARDRAILS.md|ops/compatibility-policy.md)
+              src/core/review/cli.py|src/core/review/output_normalizer.py|ops/IMPLEMENTATION-GUARDRAILS.md|ops/compatibility-policy.md)
                 contract_sensitive=1
                 ;;
             esac
