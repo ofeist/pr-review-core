@@ -4,6 +4,31 @@ All notable changes to this project are documented in this file.
 
 This project follows Keep a Changelog style and Semantic Versioning with compatibility constraints documented in `ops/versioning-policy.md`.
 
+## [0.4.0](https://github.com/ofeist/pr-review-core/compare/v0.3.1...v0.4.0) (2026-04-17)
+
+
+### Features
+
+* **review:** add agentic demo output mode ([14ce428](https://github.com/ofeist/pr-review-core/commit/14ce428ace9512cce90463173b8bf9f0e79764f5))
+
+
+### Bug Fixes
+
+* **diff:** tolerate invalid UTF-8 bytes in diff input ([658e0a6](https://github.com/ofeist/pr-review-core/commit/658e0a6fa6926c1fa3805edc494cb74b7e219850))
+* **diff:** tolerate invalid UTF-8 bytes in diff input ([1f24f54](https://github.com/ofeist/pr-review-core/commit/1f24f5457f9b4f7bc73a8f90762d55633be05927))
+
+
+### Documentation
+
+* **agentic:** add post-merge worktree reset notes ([d4d2a26](https://github.com/ofeist/pr-review-core/commit/d4d2a26d278942af77119165525d3fe2b35df04f))
+* **agentic:** add task for agentic demo review slice ([4ab55e1](https://github.com/ofeist/pr-review-core/commit/4ab55e1e80e140e7f50dfe5ebb28500b388b9299))
+* **agentic:** add workflow scaffolding and templates ([ac2cdb6](https://github.com/ofeist/pr-review-core/commit/ac2cdb6466bed872285a8a0f6e04eea77873cedd))
+* **agentic:** clarify finding decisions for showcase slices ([0a6ae41](https://github.com/ofeist/pr-review-core/commit/0a6ae416b43dd97523622dd9dbdd732f60ee087d))
+* **agentic:** clarify workdir setup and planning scope ([6475f15](https://github.com/ofeist/pr-review-core/commit/6475f1532994f0fd9b786e3a5b276e60ef921c30))
+* **agentic:** link release policy from workflow ([ed3f3bf](https://github.com/ofeist/pr-review-core/commit/ed3f3bfd46736396a5092c1d388969ccb08cbd00))
+* **consumer:** add Jenkins and Bitbucket Data Center integration example ([8db683f](https://github.com/ofeist/pr-review-core/commit/8db683f05647854ee55eb6653f1ea243b38a6d6e))
+* **review:** record agentic demo compatibility note ([39857be](https://github.com/ofeist/pr-review-core/commit/39857be9c2ffbaffc57b03424f7de1234346be0f))
+
 ## [0.3.1](https://github.com/ofeist/pr-review-core/compare/v0.3.0...v0.3.1) (2026-03-09)
 
 
