@@ -35,13 +35,19 @@ def read_diff(
 
     if from_file is not None:
         try:
-            with open(from_file, "r", encoding="utf-8") as f:
-                return f.read().strip()
+            with open(from_file, "rb") as f:
+                return f.read().decode("utf-8", errors="replace").strip()
         except OSError as e:
             raise DiffReadError(f"Failed to read diff file: {e}") from e
 
     if not sys.stdin.isatty():
-        data = sys.stdin.read().strip()
+        try:
+            if hasattr(sys.stdin, "buffer"):
+                data = sys.stdin.buffer.read().decode("utf-8", errors="replace").strip()
+            else:
+                data = sys.stdin.read().strip()
+        except OSError as e:
+            raise DiffReadError(f"Failed to read diff from stdin: {e}") from e
         if data:
             return data
 
