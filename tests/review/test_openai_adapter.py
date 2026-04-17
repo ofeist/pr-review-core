@@ -42,6 +42,7 @@ class OpenAIAdapterConfigTest(unittest.TestCase):
                 "OPENAI_API_KEY": "test-key",
                 "OPENAI_MODEL": "gpt-test",
                 "OPENAI_TIMEOUT_SECONDS": "42",
+                "OPENAI_MAX_OUTPUT_TOKENS": "2048",
             },
             clear=True,
         ):
@@ -50,6 +51,7 @@ class OpenAIAdapterConfigTest(unittest.TestCase):
         self.assertEqual(adapter.api_key, "test-key")
         self.assertEqual(adapter.model, "gpt-test")
         self.assertEqual(adapter.timeout_seconds, 42)
+        self.assertEqual(adapter.max_output_tokens, 2048)
 
     def test_from_env_uses_defaults_for_empty_optional_values(self) -> None:
         with patch.dict(
@@ -58,6 +60,7 @@ class OpenAIAdapterConfigTest(unittest.TestCase):
                 "OPENAI_API_KEY": "test-key",
                 "OPENAI_MODEL": "",
                 "OPENAI_TIMEOUT_SECONDS": "",
+                "OPENAI_MAX_OUTPUT_TOKENS": "",
             },
             clear=True,
         ):
@@ -65,6 +68,33 @@ class OpenAIAdapterConfigTest(unittest.TestCase):
 
         self.assertEqual(adapter.model, "gpt-4.1-mini")
         self.assertEqual(adapter.timeout_seconds, 30)
+        self.assertEqual(adapter.max_output_tokens, 1200)
+
+    def test_from_env_max_output_tokens_must_be_integer(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "OPENAI_API_KEY": "test-key",
+                "OPENAI_MAX_OUTPUT_TOKENS": "abc",
+            },
+            clear=True,
+        ):
+            with self.assertRaises(AdapterConfigError):
+                OpenAIModelAdapter.from_env()
+
+    def test_from_env_max_output_tokens_must_be_positive(self) -> None:
+        for value in ("0", "-1"):
+            with self.subTest(value=value):
+                with patch.dict(
+                    os.environ,
+                    {
+                        "OPENAI_API_KEY": "test-key",
+                        "OPENAI_MAX_OUTPUT_TOKENS": value,
+                    },
+                    clear=True,
+                ):
+                    with self.assertRaises(AdapterConfigError):
+                        OpenAIModelAdapter.from_env()
 
 
 class OpenAIAdapterRuntimeTest(unittest.TestCase):

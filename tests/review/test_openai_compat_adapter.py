@@ -101,6 +101,7 @@ class OpenAICompatAdapterConfigTest(unittest.TestCase):
                 "OPENAI_COMPAT_MODEL": "qwen2.5-coder",
                 "OPENAI_COMPAT_API_KEY": "test-key",
                 "OPENAI_COMPAT_TIMEOUT_SECONDS": "45",
+                "OPENAI_COMPAT_MAX_OUTPUT_TOKENS": "2048",
             },
             clear=True,
         ):
@@ -110,6 +111,7 @@ class OpenAICompatAdapterConfigTest(unittest.TestCase):
         self.assertEqual(adapter.model, "qwen2.5-coder")
         self.assertEqual(adapter.api_key, "test-key")
         self.assertEqual(adapter.timeout_seconds, 45)
+        self.assertEqual(adapter.max_output_tokens, 2048)
 
     def test_from_env_uses_default_timeout_when_empty(self) -> None:
         with patch.dict(
@@ -118,12 +120,14 @@ class OpenAICompatAdapterConfigTest(unittest.TestCase):
                 "OPENAI_COMPAT_BASE_URL": "http://localhost:11434/v1",
                 "OPENAI_COMPAT_MODEL": "qwen2.5-coder",
                 "OPENAI_COMPAT_TIMEOUT_SECONDS": "",
+                "OPENAI_COMPAT_MAX_OUTPUT_TOKENS": "",
             },
             clear=True,
         ):
             adapter = OpenAICompatModelAdapter.from_env()
 
         self.assertEqual(adapter.timeout_seconds, 30)
+        self.assertEqual(adapter.max_output_tokens, 1200)
 
     def test_from_env_timeout_must_be_integer(self) -> None:
         with patch.dict(
@@ -150,6 +154,34 @@ class OpenAICompatAdapterConfigTest(unittest.TestCase):
         ):
             with self.assertRaises(AdapterConfigError):
                 OpenAICompatModelAdapter.from_env()
+
+    def test_from_env_max_output_tokens_must_be_integer(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "OPENAI_COMPAT_BASE_URL": "http://localhost:11434/v1",
+                "OPENAI_COMPAT_MODEL": "qwen2.5-coder",
+                "OPENAI_COMPAT_MAX_OUTPUT_TOKENS": "abc",
+            },
+            clear=True,
+        ):
+            with self.assertRaises(AdapterConfigError):
+                OpenAICompatModelAdapter.from_env()
+
+    def test_from_env_max_output_tokens_must_be_positive(self) -> None:
+        for value in ("0", "-1"):
+            with self.subTest(value=value):
+                with patch.dict(
+                    os.environ,
+                    {
+                        "OPENAI_COMPAT_BASE_URL": "http://localhost:11434/v1",
+                        "OPENAI_COMPAT_MODEL": "qwen2.5-coder",
+                        "OPENAI_COMPAT_MAX_OUTPUT_TOKENS": value,
+                    },
+                    clear=True,
+                ):
+                    with self.assertRaises(AdapterConfigError):
+                        OpenAICompatModelAdapter.from_env()
 
 
 class OpenAICompatAdapterRuntimeTest(unittest.TestCase):
@@ -234,6 +266,7 @@ class OpenAICompatAdapterRuntimeTest(unittest.TestCase):
             base_url="http://localhost:11434/v1",
             model="chat",
             timeout_seconds=19,
+            max_output_tokens=789,
             client=_FakeClient(responses_api, chat_api),
         )
 
@@ -241,6 +274,7 @@ class OpenAICompatAdapterRuntimeTest(unittest.TestCase):
 
         self.assertIn("chat fallback ok", output)
         self.assertEqual(chat_api.last_kwargs["model"], "chat")
+        self.assertEqual(chat_api.last_kwargs["max_tokens"], 789)
         self.assertEqual(chat_api.last_kwargs["timeout"], 19)
         self.assertEqual(chat_api.last_kwargs["messages"][0]["content"], "prompt text")
 

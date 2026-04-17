@@ -180,6 +180,7 @@ Example: self-hosted vLLM
 ```bash
 export OPENAI_COMPAT_BASE_URL="http://localhost:8000/v1"
 export OPENAI_COMPAT_MODEL="Qwen/Qwen2.5-Coder-7B-Instruct"
+export OPENAI_COMPAT_MAX_OUTPUT_TOKENS="2000"
 python -m core.review.cli \
   --input-format raw \
   --from-file tests/review/fixtures/raw_small.diff \

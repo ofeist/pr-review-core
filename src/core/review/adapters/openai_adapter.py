@@ -29,6 +29,7 @@ class OpenAIModelAdapter:
         api_key = os.getenv("OPENAI_API_KEY", "").strip()
         model = os.getenv("OPENAI_MODEL", "").strip() or "gpt-4.1-mini"
         timeout_raw = os.getenv("OPENAI_TIMEOUT_SECONDS", "").strip()
+        max_output_tokens_raw = os.getenv("OPENAI_MAX_OUTPUT_TOKENS", "").strip()
 
         if not api_key:
             raise AdapterConfigError("OPENAI_API_KEY is required for openai adapter.")
@@ -42,10 +43,20 @@ class OpenAIModelAdapter:
         if timeout_seconds <= 0:
             raise AdapterConfigError("OPENAI_TIMEOUT_SECONDS must be > 0.")
 
+        max_output_tokens = 1200
+        if max_output_tokens_raw:
+            try:
+                max_output_tokens = int(max_output_tokens_raw)
+            except ValueError as exc:
+                raise AdapterConfigError("OPENAI_MAX_OUTPUT_TOKENS must be an integer.") from exc
+        if max_output_tokens <= 0:
+            raise AdapterConfigError("OPENAI_MAX_OUTPUT_TOKENS must be > 0.")
+
         return cls(
             api_key=api_key,
             model=model,
             timeout_seconds=timeout_seconds,
+            max_output_tokens=max_output_tokens,
         )
 
     def generate_review(self, prompt: str) -> str:

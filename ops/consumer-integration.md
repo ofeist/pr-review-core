@@ -170,6 +170,7 @@ pipeline {
     OPENAI_COMPAT_API_KEY = credentials('openai_compat_api_key')
     OPENAI_COMPAT_MODEL = 'qwen3:32b'
     OPENAI_COMPAT_TIMEOUT_SECONDS = '300'
+    OPENAI_COMPAT_MAX_OUTPUT_TOKENS = '2000'
   }
 
   stages {

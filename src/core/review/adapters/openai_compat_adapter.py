@@ -35,6 +35,7 @@ class OpenAICompatModelAdapter:
         model = os.getenv("OPENAI_COMPAT_MODEL", "").strip()
         api_key = os.getenv("OPENAI_COMPAT_API_KEY", "").strip()
         timeout_raw = os.getenv("OPENAI_COMPAT_TIMEOUT_SECONDS", "").strip()
+        max_output_tokens_raw = os.getenv("OPENAI_COMPAT_MAX_OUTPUT_TOKENS", "").strip()
 
         if not base_url:
             raise AdapterConfigError("OPENAI_COMPAT_BASE_URL is required for openai-compat adapter.")
@@ -50,11 +51,23 @@ class OpenAICompatModelAdapter:
         if timeout_seconds <= 0:
             raise AdapterConfigError("OPENAI_COMPAT_TIMEOUT_SECONDS must be > 0.")
 
+        max_output_tokens = 1200
+        if max_output_tokens_raw:
+            try:
+                max_output_tokens = int(max_output_tokens_raw)
+            except ValueError as exc:
+                raise AdapterConfigError(
+                    "OPENAI_COMPAT_MAX_OUTPUT_TOKENS must be an integer."
+                ) from exc
+        if max_output_tokens <= 0:
+            raise AdapterConfigError("OPENAI_COMPAT_MAX_OUTPUT_TOKENS must be > 0.")
+
         return cls(
             base_url=base_url,
             model=model,
             api_key=api_key,
             timeout_seconds=timeout_seconds,
+            max_output_tokens=max_output_tokens,
         )
 
     def generate_review(self, prompt: str) -> str:
@@ -128,6 +141,7 @@ class OpenAICompatModelAdapter:
         return client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
+            max_tokens=self.max_output_tokens,
             timeout=self.timeout_seconds,
         )
 
