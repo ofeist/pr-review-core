@@ -6,6 +6,7 @@ Maintain a phase-agnostic, execution-first queue of immediate slices.
 Use this as the active implementation plan when roadmap phase ordering may change.
 
 Active detailed plan:
+- `ops/max-output-tokens-env-plan.md` (queued)
 - `ops/phase-5-thin-slices.md`
 - `ops/versioning-automation-thin-slices.md` (queued)
 
@@ -30,6 +31,7 @@ Completed prior track:
 - Phase 4.2 / Slice 5 - Docs and Consumer Usage: done
 - Phase 4.2 / Slice 6 - Exit Validation and Queue Handoff: done
 - Next / Phase 5 Slice 1 - GitHub App Skeleton: queued
+- Next / Max Output Tokens Env - Adapter output length env config: queued
 - Next / Versioning Automation Slice 0 - Policy and Human-in-Loop Baseline: done
 - Next / Versioning Automation Slice 1 - Release Automation Skeleton: done
 - Next / Versioning Automation Slice 2 - Label and Policy Enforcement: done
@@ -43,6 +45,7 @@ Completed prior track:
 2. Phase 4.2 is complete; reference `ops/done/phase-4-2-exit-validation.md` for handoff details.
 3. Start Phase 5 Slice 1 from `ops/phase-5-thin-slices.md`.
 4. Versioning Automation track complete; reference `ops/done/versioning-automation-exit-validation.md`.
+5. Max Output Tokens Env plan is queued in `ops/max-output-tokens-env-plan.md`.
 
 ## Mapping Notes
 - `ops/ROADMAP.md` remains the strategic phase plan.
