@@ -10,3 +10,7 @@ dist/
 .venv-smoke/
 .venv-consumer/
 .venv-exit/
+
+# Local agent metadata
+.codex
+.codex/
