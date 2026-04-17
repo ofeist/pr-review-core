@@ -65,6 +65,7 @@ Stable/expected flags:
 - `--pr-body`
 - `--max-changes-per-chunk`
 - `--fallback-mode` (`on|off`)
+- `--agentic-demo`
 
 Contract scope:
 - Flag names and section names above are compatibility-sensitive.

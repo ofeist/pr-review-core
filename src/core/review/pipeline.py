@@ -85,6 +85,7 @@ def run_review(
     adapter_override: Optional[ModelAdapter] = None,
     pr_title: str = "",
     pr_body: str = "",
+    agentic_demo: bool = False,
 ) -> str:
     """Run review generation with full-diff then fallback orchestration."""
 
@@ -104,12 +105,13 @@ def run_review(
             pr_title=pr_title,
             pr_body=pr_body,
         )
-        return merge_chunk_markdowns(
+        output = merge_chunk_markdowns(
             [full_output],
             change_summary_lines=change_summary_lines,
             summary_prefix=summary_prefix,
             intent_summary=intent_summary,
         )
+        return _render_agentic_demo(output) if agentic_demo else output
     except Exception as exc:
         if not fallback_enabled:
             raise RuntimeError("Full-diff review failed and fallback mode is disabled.") from exc
@@ -135,16 +137,17 @@ def run_review(
                 LOGGER.warning("Fallback chunk review failed for file '%s': %s", file_obj.path, exc)
 
     if fallback_outputs:
-        return merge_chunk_markdowns(
+        output = merge_chunk_markdowns(
             fallback_outputs,
             change_summary_lines=change_summary_lines,
             summary_prefix=summary_prefix,
             intent_summary=intent_summary,
         )
+        return _render_agentic_demo(output) if agentic_demo else output
 
     # Step 3: controlled final fallback if everything failed.
     change_summary_block = "\n".join(change_summary_lines) if change_summary_lines else "- Not available."
-    return (
+    output = (
         "## AI Review\n"
         "\n"
         "### Summary\n"
@@ -159,6 +162,7 @@ def run_review(
         "### Findings\n"
         "- No issues found.\n"
     )
+    return _render_agentic_demo(output) if agentic_demo else output
 
 
 def _review_one_payload(
@@ -182,3 +186,57 @@ def _review_one_payload(
     raw_output = adapter.generate_review(prompt)
     normalized = normalize_review_markdown(raw_output)
     return filter_review_markdown(normalized)
+
+
+def _render_agentic_demo(markdown: str) -> str:
+    sections = _extract_sections(markdown)
+    summary = sections.get("Summary", "Review summary not available.")
+    intent = sections.get("Intent", "Intent not provided.")
+    change_summary = sections.get("Change Summary", "- Not available.")
+    findings = sections.get("Findings", "- No issues found.")
+
+    final_recommendation = (
+        "Proceed with the change."
+        if findings.strip() == "- No issues found."
+        else "Address the findings before merging."
+    )
+
+    out = [
+        "## AI Review",
+        "",
+        "### Plan",
+        intent,
+        "",
+        "### Review",
+        summary,
+        "",
+        "Changed files considered:",
+        change_summary,
+        "",
+        "### QA",
+        "Deterministic demo mode: staged handoff derived from one review pass.",
+        "",
+        "Findings carried into QA:",
+        findings,
+        "",
+        "### Final Recommendation",
+        final_recommendation,
+    ]
+    return "\n".join(out).rstrip() + "\n"
+
+
+def _extract_sections(markdown: str) -> Dict[str, str]:
+    sections: Dict[str, List[str]] = {}
+    current_name: Optional[str] = None
+
+    for line in markdown.splitlines():
+        if line.startswith("### "):
+            current_name = line[4:].strip()
+            sections[current_name] = []
+            continue
+        if current_name is not None:
+            sections[current_name].append(line)
+
+    return {
+        name: "\n".join(lines).strip() for name, lines in sections.items() if "\n".join(lines).strip()
+    }

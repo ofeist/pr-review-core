@@ -83,7 +83,12 @@ Useful flags:
 - `--adapter fake|openai|openai-compat|ollama|anything-chat`
 - `--max-changes-per-chunk <int>`
 - `--fallback-mode on|off`
+- `--agentic-demo`
 - `--repository`, `--base-ref`, `--head-ref`
+
+Demo note:
+- `--agentic-demo` renders deterministic staged showcase output (`Plan`, `Review`, `QA`, `Final Recommendation`) from the standard review pass.
+- It does not start real planner/reviewer/QA agents or multiple model calls.
 
 Provider notes:
 - OpenAI-compatible providers should use `.../v1` base URL.

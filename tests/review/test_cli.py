@@ -149,6 +149,26 @@ class ReviewCliTest(unittest.TestCase):
         self.assertEqual(err, "")
         self.assertEqual(run_review_mock.call_args.kwargs["adapter_name"], "anything-chat")
 
+    def test_cli_agentic_demo_renders_staged_output(self) -> None:
+        raw_diff = (
+            "diff --git a/src/app.py b/src/app.py\n"
+            "@@ -1,1 +1,2 @@\n"
+            " def hello():\n"
+            "+    return 'hi'\n"
+        )
+
+        code, out, err = self._run_main(
+            ["--input-format", "raw", "--adapter", "fake", "--agentic-demo"],
+            raw_diff,
+        )
+
+        self.assertEqual(code, 0)
+        self.assertIn("### Plan", out)
+        self.assertIn("### Review", out)
+        self.assertIn("### QA", out)
+        self.assertIn("### Final Recommendation", out)
+        self.assertEqual(err, "")
+
 
 if __name__ == "__main__":
     unittest.main()

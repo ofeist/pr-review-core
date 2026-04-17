@@ -100,6 +100,16 @@ PYTHONPATH=src git diff origin/main...HEAD | python -m core.diff.cli | python -m
 
 For installed-package workflows (including direct stdin from `git diff`), see `ops/package-testing.md`.
 
+Agentic demo review shape:
+
+```bash
+PYTHONPATH=src git diff origin/main...HEAD | python -m core.review.cli --input-format raw --adapter fake --agentic-demo
+```
+
+Notes:
+- `--agentic-demo` is a deterministic showcase mode for staged `Plan`, `Review`, `QA`, and `Final Recommendation` sections.
+- It does not run real planner/reviewer/QA agents or multiple model calls.
+
 ## Adapter Examples
 
 OpenAI-compatible:

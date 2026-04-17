@@ -1,0 +1,1 @@
+Read AGENTS.md and the task document. Implement the requested slice with a minimal diff on the active feature branch. Preserve existing conventions. Update generated artifacts, config wiring, and docs if the change requires them. Run relevant checks. Then write a handoff note using the template.

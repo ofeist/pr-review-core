@@ -1,0 +1,1 @@
+Read AGENTS.md, the task document, and previous handoffs. Validate the active feature using the repo verification ladder: focused checks first, broader checks only when justified, and staging for rollout-sensitive changes. Identify deploy/config/documentation gaps if relevant. If needed, create a minimal QA patch. Then write a handoff note, including what was not run.

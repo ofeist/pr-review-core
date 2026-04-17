@@ -1,0 +1,1 @@
+Read AGENTS.md, the task document, the builder handoff, and the diff on the feature branch. Review for logic bugs, edge cases, missing tests, migration risk, rollout/config risk, missing artifact updates, and unintended scope expansion. Prefer findings first. If needed, create a minimal review patch. Then write a handoff note.
