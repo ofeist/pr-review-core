@@ -55,8 +55,8 @@ Use this section as the source of truth for adapter environment variables.
 | Adapter | Required | Optional |
 | --- | --- | --- |
 | `fake` | none | none |
-| `openai` | `OPENAI_API_KEY` | `OPENAI_MODEL` (default `gpt-4.1-mini`), `OPENAI_TIMEOUT_SECONDS` (default `30`) |
-| `openai-compat` | `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_MODEL` | `OPENAI_COMPAT_API_KEY`, `OPENAI_COMPAT_TIMEOUT_SECONDS` (default `30`), `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK` (`1\|true\|yes\|on`) |
+| `openai` | `OPENAI_API_KEY` | `OPENAI_MODEL` (default `gpt-4.1-mini`), `OPENAI_TIMEOUT_SECONDS` (default `30`), `OPENAI_MAX_OUTPUT_TOKENS` (default `1200`) |
+| `openai-compat` | `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_MODEL` | `OPENAI_COMPAT_API_KEY`, `OPENAI_COMPAT_TIMEOUT_SECONDS` (default `30`), `OPENAI_COMPAT_MAX_OUTPUT_TOKENS` (default `1200`), `OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK` (`1\|true\|yes\|on`) |
 | `ollama` | `OLLAMA_BASE_URL`, `OLLAMA_MODEL` | `OLLAMA_TIMEOUT_SECONDS` (default `30`) |
 | `anything-chat` | `ANYTHING_CHAT_URL` | `ANYTHING_CHAT_API_KEY`, `ANYTHING_CHAT_TIMEOUT_SECONDS` (default `30`) |
 

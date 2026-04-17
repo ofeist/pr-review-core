@@ -148,6 +148,7 @@ Repository Variables:
 - `AI_REVIEW_ADAPTER_MODE`: `fake` (default) or `openai`
 - `OPENAI_MODEL` (optional)
 - `OPENAI_TIMEOUT_SECONDS` (optional)
+- `OPENAI_MAX_OUTPUT_TOKENS` (optional, default `1200`)
 - `AI_REVIEW_MAX_COMMENT_CHARS` (optional, default `60000`)
 
 Repository Secrets:
