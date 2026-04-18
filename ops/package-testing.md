@@ -11,13 +11,15 @@ Use this when you want to produce artifacts for the current latest version in th
 
 ### 0. Confirm version metadata first
 
-- Update/check `pyproject.toml` version.
-- Update/check `CHANGELOG.md` notes for the same version.
+- For routine releases, do not manually update version metadata.
+- Release-please updates `pyproject.toml`, `.release-please-manifest.json`, and `CHANGELOG.md` in the release PR.
+- For local package checks, confirm the currently checked-out version is the one you intend to test.
 
 Quick check:
 
 ```bash
-rg -n "^version = " pyproject.toml
+grep -n "^version = " pyproject.toml
+cat .release-please-manifest.json
 ```
 
 ### 1. Build in an isolated venv
@@ -44,7 +46,7 @@ python -c "import core; print(core.__version__)"
 ```
 
 Expected:
-- Printed version matches `pyproject.toml`.
+- Printed version matches `pyproject.toml` and `.release-please-manifest.json`.
 
 ### 3. Smoke the installed package from outside repo root
 

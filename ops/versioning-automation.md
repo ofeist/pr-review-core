@@ -30,6 +30,7 @@ Phase 0 decisions (locked):
 - Release automation creates/updates release PR, but does not auto-merge it.
 - Human approver merges release PR after checklist verification.
 - Tag/release remains human-approved in Phase 0.
+- Release automation does not manage `autorelease:*` labels (`skip-labeling: true`); this avoids stale release-please label state when tags/releases are approved manually.
 
 Approval gate:
 - At least one maintainer approval required on release PR.
@@ -42,9 +43,26 @@ Approval gate:
 - Artifact publishing: GitHub Releases (`.whl` + `.tar.gz`)
 
 ## Required Inputs
-- `pyproject.toml` version source of truth
-- `CHANGELOG.md` release notes
+- `pyproject.toml`, `.release-please-manifest.json`, and `CHANGELOG.md` are updated by the release-please PR.
+- The release PR version is the version source for the manual tag.
 - Release labels and PR conventions
+
+## Current Release Flow
+1. Normal feature/fix/docs PR gets exactly one release label:
+   - `release:patch`
+   - `release:minor`
+   - `release:major`
+2. Merge the normal PR to `main`.
+3. The `Release PR` workflow runs release-please on `main`.
+4. If release-worthy commits exist, release-please opens or updates `chore(release): vX.Y.Z`.
+5. Review the generated version/changelog changes and merge the release PR.
+6. Pull updated `main`.
+7. Create and push the exact tag from the release PR:
+   - `git tag -a vX.Y.Z -m "Release vX.Y.Z"`
+   - `git push origin vX.Y.Z`
+8. Tag workflows validate consistency and publish GitHub Release assets.
+
+Do not manually edit version files for routine releases. Let release-please update them, then tag the merged release PR version.
 
 ## How to Set Release Label
 Exactly one label is required on each normal PR:
@@ -99,6 +117,7 @@ gh label create "release:major" --color b60205 --description "Contract-sensitive
   - `release-please-config.json`
   - `.release-please-manifest.json`
 - Current mode is PR automation only (`skip-github-release: true`) to preserve human-approved tag/release flow in Phase 0.
+- Release-please label management is disabled (`skip-labeling: true`) so manual tag/release approval does not leave stale `autorelease: pending` labels behind.
 
 ## Implemented in Slice 2
 - Added PR policy workflow:

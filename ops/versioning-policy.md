@@ -4,7 +4,8 @@
 This policy defines how `pr-review-core` versions are bumped and how compatibility is communicated for downstream users.
 
 ## Baseline
-- Current baseline: `0.1.0`
+- Current version is tracked in `pyproject.toml` and `.release-please-manifest.json`.
+- Release-please updates version metadata and `CHANGELOG.md` through a human-reviewed release PR.
 - During `0.x`, treat CLI flags and markdown section contract as compatibility-sensitive.
 
 ## Version Bump Rules
@@ -31,6 +32,12 @@ Every tagged release should include:
 - User-visible changes.
 - Compatibility impact statement (`none` or explicit migration required).
 - Upgrade instructions if any behavior changed.
+
+## Release Mechanics
+- Normal PRs must carry exactly one release intent label (`release:patch|release:minor|release:major`).
+- Routine releases should not manually edit version files.
+- Merge the release-please PR first, then tag exactly the generated version.
+- Tag-triggered workflows publish GitHub Release assets (`.whl` and `.tar.gz`) only after consistency checks pass.
 
 ## Consumer Upgrade Cadence
 - Recommend planned upgrades (weekly/biweekly/monthly), not ad hoc bumps.
