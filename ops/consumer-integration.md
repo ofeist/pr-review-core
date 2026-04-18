@@ -155,22 +155,32 @@ Recommended split:
 Typical flow:
 1. Jenkins checks out the PR source branch and fetches the target branch.
 2. Jenkins builds a raw diff with `git diff origin/<target>...HEAD`.
-3. Jenkins runs `python -m core.review.cli` and writes `review.md`.
-4. Jenkins archives `review.md` and optionally posts it to the Bitbucket PR.
+3. Jenkins fetches PR title/body from Bitbucket Data Center.
+4. Jenkins runs `python -m core.review.cli` and passes title/body so `### Intent` is populated.
+5. Jenkins archives `review.md` and optionally posts it to the Bitbucket PR.
 
-Minimal Jenkins pipeline example:
+Recommended wrapper:
+- `examples/ai-pr-review.sh`
+
+The wrapper uses Git for the diff and Bitbucket REST only for PR metadata/comment posting.
+The wheel package does not install example scripts; copy this wrapper into the consumer repository or a Jenkins shared-library location before using the pipeline below.
+
+Minimal Jenkins pipeline example using the wrapper:
 
 ```groovy
 pipeline {
   agent any
 
   environment {
-    PR_REVIEW_VERSION = '0.3.0'
+    PR_REVIEW_VERSION = '0.5.0'
     OPENAI_COMPAT_BASE_URL = credentials('openai_compat_base_url')
     OPENAI_COMPAT_API_KEY = credentials('openai_compat_api_key')
     OPENAI_COMPAT_MODEL = 'qwen3:32b'
     OPENAI_COMPAT_TIMEOUT_SECONDS = '300'
     OPENAI_COMPAT_MAX_OUTPUT_TOKENS = '2000'
+    BB_BASE_URL = 'https://bitbucket.example.com'
+    BB_PROJECT = 'PROJECT'
+    BB_REPO = 'repo-slug'
   }
 
   stages {
@@ -185,52 +195,101 @@ pipeline {
       }
     }
 
-    stage('Build Diff') {
-      steps {
-        sh '''
-          git fetch origin "${CHANGE_TARGET}"
-          git diff --no-color "origin/${CHANGE_TARGET}...HEAD" > pr.diff
-        '''
-      }
-    }
-
     stage('Run Review') {
       steps {
-        sh '''
-          . .venv-pr-review/bin/activate
-          python -m core.review.cli \
-            --input-format raw \
-            --from-file pr.diff \
-            --adapter openai_compat \
-            > review.md
-        '''
+        withCredentials([string(credentialsId: 'bitbucket-pr-review-token', variable: 'BB_TOKEN')]) {
+          sh '''
+            PYTHON_BIN=".venv-pr-review/bin/python" \
+            OUTPUT_FILE="review.md" \
+            POST_REVIEW_COMMENT="0" \
+            examples/ai-pr-review.sh
+          '''
+        }
       }
     }
 
     stage('Archive Review') {
       steps {
-        archiveArtifacts artifacts: 'review.md', fingerprint: true
+        archiveArtifacts artifacts: 'review.md,out/pr.diff', fingerprint: true
       }
     }
   }
 }
 ```
 
-To publish back to Bitbucket DC, add a final step that posts `review.md` to the PR comments endpoint:
+If the wrapper is not used, pass Bitbucket metadata explicitly:
+
+```bash
+PR_JSON="$(curl -fsSL \
+  -H "Authorization: Bearer ${BB_TOKEN}" \
+  "${BB_BASE_URL}/rest/api/1.0/projects/${BB_PROJECT}/repos/${BB_REPO}/pull-requests/${CHANGE_ID}")"
+
+PR_TITLE="$(printf '%s' "$PR_JSON" | python -c 'import json,sys; print((json.load(sys.stdin).get("title") or ""))')"
+PR_BODY="$(printf '%s' "$PR_JSON" | python -c 'import json,sys; print((json.load(sys.stdin).get("description") or ""))')"
+
+git fetch origin "refs/heads/${CHANGE_TARGET}:refs/remotes/origin/${CHANGE_TARGET}"
+git diff --no-color "origin/${CHANGE_TARGET}...HEAD" > pr.diff
+
+python -m core.review.cli \
+  --input-format raw \
+  --from-file pr.diff \
+  --adapter openai-compat \
+  --pr-title "$PR_TITLE" \
+  --pr-body "$PR_BODY" \
+  > review.md
+```
+
+To publish back to Bitbucket DC, either set `POST_REVIEW_COMMENT=1` for `examples/ai-pr-review.sh` or add a final step that posts `review.md` to the PR comments endpoint:
 
 ```bash
 curl -fsSL \
   -H "Authorization: Bearer ${BITBUCKET_TOKEN}" \
   -H 'Content-Type: application/json' \
   -X POST \
-  -d "{\"text\": $(jq -Rs . < review.md)}" \
+  -d "{\"text\": $(python -c 'import json,sys; print(json.dumps(sys.stdin.read()))' < review.md)}" \
   "${BITBUCKET_BASE_URL}/rest/api/1.0/projects/${BITBUCKET_PROJECT}/repos/${BITBUCKET_REPO}/pull-requests/${BITBUCKET_PR_ID}/comments"
+```
+
+Alternative helper for local/manual Bitbucket PR refs:
+
+```bash
+examples/review-bitbucket-pr.sh --pr-id "$CHANGE_ID" \
+  --pr-title "$PR_TITLE" \
+  --pr-body "$PR_BODY" \
+  --python-bin ".venv-pr-review/bin/python" \
+  --adapter openai-compat \
+  --output review.md
 ```
 
 Operational guidance:
 - Start by archiving `review.md` only.
 - Add PR comment posting after the review output looks acceptable.
 - Keep Bitbucket/Jenkins-specific retry/upsert logic outside `core/`.
+
+Legacy minimal direct CLI shape:
+
+```groovy
+pipeline {
+  agent any
+
+  stages {
+    stage('Run Review') {
+      steps {
+        sh '''
+          git fetch origin "${CHANGE_TARGET}"
+          git diff --no-color "origin/${CHANGE_TARGET}...HEAD" \
+            | python -m core.review.cli \
+                --input-format raw \
+                --adapter openai-compat \
+            > review.md
+        '''
+      }
+    }
+  }
+}
+```
+
+This legacy shape works, but `### Intent` will be `Intent not provided.` unless `--pr-title` and `--pr-body` are passed.
 
 ## 5. Validation Commands
 
