@@ -90,7 +90,17 @@ python -m core.review.cli --input-format raw --from-file artifacts/pr.diff --ada
 
 # Self-hosted vLLM
 OPENAI_COMPAT_BASE_URL="http://vllm.internal:8000/v1" \
-OPENAI_COMPAT_MODEL="Qwen/Qwen2.5-Coder-7B-Instruct" \
+OPENAI_COMPAT_MODEL="Qwen/Qwen3.5-Coder" \
+OPENAI_COMPAT_DISABLE_THINKING="1" \
+OPENAI_COMPAT_MAX_OUTPUT_TOKENS="2000" \
+python -m core.review.cli --input-format raw --from-file artifacts/pr.diff --adapter openai-compat
+
+# AnythingLLM/proxy in front of vLLM
+OPENAI_COMPAT_BASE_URL="http://anythingllm:3001/api/v1/openai" \
+OPENAI_COMPAT_MODEL="workspace-slug" \
+OPENAI_COMPAT_DISABLE_THINKING="1" \
+REVIEW_DISABLE_REASONING_PROMPT="1" \
+OPENAI_COMPAT_MAX_OUTPUT_TOKENS="2000" \
 python -m core.review.cli --input-format raw --from-file artifacts/pr.diff --adapter openai-compat
 
 # Local gateway (Ollama-compatible endpoint)
@@ -110,6 +120,7 @@ Example:
 ```bash
 OLLAMA_BASE_URL="http://localhost:11434" \
 OLLAMA_MODEL="qwen3:32b" \
+OLLAMA_THINK="false" \
 python -m core.review.cli --input-format raw --from-file artifacts/pr.diff --adapter ollama
 ```
 
@@ -178,6 +189,8 @@ pipeline {
     OPENAI_COMPAT_MODEL = 'qwen3:32b'
     OPENAI_COMPAT_TIMEOUT_SECONDS = '300'
     OPENAI_COMPAT_MAX_OUTPUT_TOKENS = '2000'
+    OPENAI_COMPAT_DISABLE_THINKING = '1'
+    REVIEW_DISABLE_REASONING_PROMPT = '1'
     BB_BASE_URL = 'https://bitbucket.example.com'
     BB_PROJECT = 'PROJECT'
     BB_REPO = 'repo-slug'

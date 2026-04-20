@@ -102,6 +102,7 @@ class OpenAICompatAdapterConfigTest(unittest.TestCase):
                 "OPENAI_COMPAT_API_KEY": "test-key",
                 "OPENAI_COMPAT_TIMEOUT_SECONDS": "45",
                 "OPENAI_COMPAT_MAX_OUTPUT_TOKENS": "2048",
+                "OPENAI_COMPAT_DISABLE_THINKING": "1",
             },
             clear=True,
         ):
@@ -112,6 +113,7 @@ class OpenAICompatAdapterConfigTest(unittest.TestCase):
         self.assertEqual(adapter.api_key, "test-key")
         self.assertEqual(adapter.timeout_seconds, 45)
         self.assertEqual(adapter.max_output_tokens, 2048)
+        self.assertTrue(adapter.disable_thinking)
 
     def test_from_env_uses_default_timeout_when_empty(self) -> None:
         with patch.dict(
@@ -128,6 +130,7 @@ class OpenAICompatAdapterConfigTest(unittest.TestCase):
 
         self.assertEqual(adapter.timeout_seconds, 30)
         self.assertEqual(adapter.max_output_tokens, 1200)
+        self.assertFalse(adapter.disable_thinking)
 
     def test_from_env_timeout_must_be_integer(self) -> None:
         with patch.dict(
@@ -182,6 +185,21 @@ class OpenAICompatAdapterConfigTest(unittest.TestCase):
                 ):
                     with self.assertRaises(AdapterConfigError):
                         OpenAICompatModelAdapter.from_env()
+
+    def test_from_env_disable_thinking_truthy_values(self) -> None:
+        for value in ("1", "true", "yes", "on"):
+            with self.subTest(value=value):
+                with patch.dict(
+                    os.environ,
+                    {
+                        "OPENAI_COMPAT_BASE_URL": "http://localhost:11434/v1",
+                        "OPENAI_COMPAT_MODEL": "qwen3:32b",
+                        "OPENAI_COMPAT_DISABLE_THINKING": value,
+                    },
+                    clear=True,
+                ):
+                    adapter = OpenAICompatModelAdapter.from_env()
+                self.assertTrue(adapter.disable_thinking)
 
 
 class OpenAICompatAdapterRuntimeTest(unittest.TestCase):
@@ -277,6 +295,42 @@ class OpenAICompatAdapterRuntimeTest(unittest.TestCase):
         self.assertEqual(chat_api.last_kwargs["max_tokens"], 789)
         self.assertEqual(chat_api.last_kwargs["timeout"], 19)
         self.assertEqual(chat_api.last_kwargs["messages"][0]["content"], "prompt text")
+        self.assertNotIn("extra_body", chat_api.last_kwargs)
+
+    def test_generate_review_disable_thinking_uses_chat_completions_extra_body(self) -> None:
+        responses_api = _FakeResponsesApi(
+            error_to_raise=AssertionError("responses API should not be used")
+        )
+        chat_api = _FakeChatCompletionsApi(
+            response_to_return=SimpleNamespace(
+                choices=[
+                    SimpleNamespace(
+                        message=SimpleNamespace(content="## AI Review\n\n### Summary\nchat ok")
+                    )
+                ]
+            )
+        )
+        adapter = OpenAICompatModelAdapter(
+            base_url="http://localhost:8000/v1",
+            model="qwen3",
+            timeout_seconds=17,
+            max_output_tokens=654,
+            disable_thinking=True,
+            client=_FakeClient(responses_api, chat_api),
+        )
+
+        output = adapter.generate_review("prompt text")
+
+        self.assertIn("chat ok", output)
+        self.assertIsNone(responses_api.last_kwargs)
+        self.assertEqual(chat_api.last_kwargs["model"], "qwen3")
+        self.assertEqual(chat_api.last_kwargs["max_tokens"], 654)
+        self.assertEqual(chat_api.last_kwargs["timeout"], 17)
+        self.assertEqual(chat_api.last_kwargs["messages"][0]["content"], "prompt text")
+        self.assertEqual(
+            chat_api.last_kwargs["extra_body"],
+            {"chat_template_kwargs": {"enable_thinking": False}},
+        )
 
     def test_generate_review_wraps_chat_completion_fallback_errors(self) -> None:
         responses_api = _FakeResponsesApi(error_to_raise=_FakeOpenAIAPIError("404 responses unsupported"))
@@ -373,6 +427,28 @@ class OpenAICompatAdapterRuntimeTest(unittest.TestCase):
         body = request.data.decode("utf-8")
         self.assertIn('"model": "qwen3:32b"', body)
         self.assertIn('"prompt": "prompt text"', body)
+
+    def test_generate_review_ollama_fallback_sends_think_false_when_disabled(self) -> None:
+        responses_api = _FakeResponsesApi(response_to_return=SimpleNamespace(output_text=""))
+        chat_api = _FakeChatCompletionsApi(response_to_return=SimpleNamespace(choices=[]))
+        adapter = OpenAICompatModelAdapter(
+            base_url="http://localhost:11434/v1",
+            model="qwen3:32b",
+            disable_thinking=True,
+            client=_FakeClient(responses_api, chat_api),
+        )
+
+        with patch.dict(os.environ, {"OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK": "1"}, clear=False):
+            with patch(
+                "core.review.adapters.openai_compat_adapter.urllib.request.urlopen",
+                return_value=_FakeHttpResponse('{"response":"fallback hello"}'),
+            ) as urlopen_mock:
+                output = adapter.generate_review("prompt text")
+
+        self.assertEqual(output, "fallback hello")
+        request = urlopen_mock.call_args.args[0]
+        body = request.data.decode("utf-8")
+        self.assertIn('"think": false', body)
 
     def test_generate_review_fallback_wraps_timeout_error(self) -> None:
         responses_api = _FakeResponsesApi(response_to_return=SimpleNamespace(output_text=""))

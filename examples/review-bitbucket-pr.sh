@@ -34,6 +34,8 @@ Required environment for openai-compat adapter:
   OPENAI_COMPAT_BASE_URL
   OPENAI_COMPAT_MODEL
   OPENAI_COMPAT_API_KEY (if your endpoint requires auth)
+  OPENAI_COMPAT_DISABLE_THINKING=1 is recommended for direct Qwen/vLLM endpoints.
+  REVIEW_DISABLE_REASONING_PROMPT=1 is recommended when using AnythingLLM/proxies.
 USAGE
 }
 

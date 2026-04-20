@@ -26,6 +26,7 @@ class OpenAICompatModelAdapter:
     api_key: str = ""
     timeout_seconds: int = 30
     max_output_tokens: int = 1200
+    disable_thinking: bool = False
     client: Optional[Any] = None
     name: str = "openai-compat"
 
@@ -36,6 +37,7 @@ class OpenAICompatModelAdapter:
         api_key = os.getenv("OPENAI_COMPAT_API_KEY", "").strip()
         timeout_raw = os.getenv("OPENAI_COMPAT_TIMEOUT_SECONDS", "").strip()
         max_output_tokens_raw = os.getenv("OPENAI_COMPAT_MAX_OUTPUT_TOKENS", "").strip()
+        disable_thinking = _env_truthy("OPENAI_COMPAT_DISABLE_THINKING")
 
         if not base_url:
             raise AdapterConfigError("OPENAI_COMPAT_BASE_URL is required for openai-compat adapter.")
@@ -68,6 +70,7 @@ class OpenAICompatModelAdapter:
             api_key=api_key,
             timeout_seconds=timeout_seconds,
             max_output_tokens=max_output_tokens,
+            disable_thinking=disable_thinking,
         )
 
     def generate_review(self, prompt: str) -> str:
@@ -75,6 +78,31 @@ class OpenAICompatModelAdapter:
             raise AdapterRuntimeError("Prompt must not be empty.")
 
         client = self._get_client()
+
+        if self.disable_thinking:
+            try:
+                response = self._generate_with_chat_completions_api(client, prompt)
+            except Exception as exc:
+                if not self._is_expected_client_error(exc):
+                    raise
+                safe_detail = self._sanitize_error_text(str(exc))
+                raise AdapterRuntimeError(
+                    f"OpenAI-compatible request failed: {safe_detail}"
+                ) from exc
+            text = self._extract_text(response)
+            if not text and self._is_ollama_fallback_enabled():
+                try:
+                    text = self._generate_with_ollama(prompt)
+                except Exception as exc:
+                    if not self._is_expected_fallback_error(exc):
+                        raise
+                    safe_detail = self._sanitize_error_text(str(exc))
+                    raise AdapterRuntimeError(
+                        f"Ollama fallback request failed: {safe_detail}"
+                    ) from exc
+            if not text:
+                raise AdapterRuntimeError("OpenAI-compatible response did not contain text output.")
+            return text
 
         try:
             response = self._generate_with_responses_api(client, prompt)
@@ -138,12 +166,19 @@ class OpenAICompatModelAdapter:
         )
 
     def _generate_with_chat_completions_api(self, client: Any, prompt: str) -> Any:
-        return client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=self.max_output_tokens,
-            timeout=self.timeout_seconds,
-        )
+        kwargs = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": self.max_output_tokens,
+            "timeout": self.timeout_seconds,
+        }
+        if self.disable_thinking:
+            kwargs["extra_body"] = {
+                "chat_template_kwargs": {
+                    "enable_thinking": False,
+                }
+            }
+        return client.chat.completions.create(**kwargs)
 
     def _is_expected_client_error(self, exc: Exception) -> bool:
         if isinstance(exc, (TimeoutError, ConnectionError, OSError)):
@@ -209,6 +244,8 @@ class OpenAICompatModelAdapter:
             "prompt": prompt,
             "stream": False,
         }
+        if self.disable_thinking:
+            payload["think"] = False
         request = urllib.request.Request(
             url=self._ollama_generate_url(),
             data=json.dumps(payload).encode("utf-8"),
@@ -280,3 +317,8 @@ class OpenAICompatModelAdapter:
                     parts.append(text.strip())
 
         return "\n".join(parts).strip()
+
+
+def _env_truthy(name: str) -> bool:
+    raw = os.getenv(name, "").strip().lower()
+    return raw in {"1", "true", "yes", "on"}

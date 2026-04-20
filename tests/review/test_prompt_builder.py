@@ -1,4 +1,6 @@
-﻿import unittest
+﻿import os
+import unittest
+from unittest.mock import patch
 
 from core.diff.types import Change, ChangeType, DiffFile, DiffHunk
 from core.review.prompt_builder import build_review_prompt
@@ -41,7 +43,8 @@ class PromptBuilderTest(unittest.TestCase):
         self.assertEqual(first, second)
 
     def test_prompt_contains_rubric_and_noise_controls(self) -> None:
-        prompt = build_review_prompt([])
+        with patch.dict(os.environ, {}, clear=True):
+            prompt = build_review_prompt([])
 
         self.assertIn("Review rubric:", prompt)
         self.assertIn("- bugs", prompt)
@@ -54,6 +57,14 @@ class PromptBuilderTest(unittest.TestCase):
         self.assertIn("Do not comment on formatting-only issues.", prompt)
         self.assertIn("Do not restate obvious code changes without risk.", prompt)
         self.assertIn("Do not speculate without evidence from the diff.", prompt)
+        self.assertNotIn("chain-of-thought", prompt)
+
+    def test_prompt_adds_no_reasoning_rule_when_enabled(self) -> None:
+        with patch.dict(os.environ, {"REVIEW_DISABLE_REASONING_PROMPT": "1"}, clear=True):
+            prompt = build_review_prompt([])
+
+        self.assertIn("Do not include chain-of-thought", prompt)
+        self.assertIn("Return only the requested review markdown.", prompt)
 
     def test_prompt_contains_explicit_no_issues_instruction(self) -> None:
         prompt = build_review_prompt([])

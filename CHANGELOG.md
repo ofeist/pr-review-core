@@ -4,6 +4,16 @@ All notable changes to this project are documented in this file.
 
 This project follows Keep a Changelog style and Semantic Versioning with compatibility constraints documented in `ops/versioning-policy.md`.
 
+## [Unreleased]
+
+### Features
+
+* **adapter:** add opt-in reasoning/thinking suppression controls for OpenAI-compatible and Ollama adapters.
+
+### Compatibility
+
+* Migration note: visible `<think>...</think>` reasoning blocks are stripped from normalized review output before markdown section extraction.
+
 ## [0.5.0](https://github.com/ofeist/pr-review-core/compare/v0.4.0...v0.5.0) (2026-04-17)
 
 

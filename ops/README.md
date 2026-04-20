@@ -1,6 +1,8 @@
 # Ops Docs Index
 
 Core planning and release docs:
+- `ops/CONFIG_FLAGS.md`
+- `ops/disable-thinking-env-plan.md`
 - `ops/max-output-tokens-env-plan.md`
 - `ops/ROADMAP.md`
 - `ops/next-thin-slices.md`
