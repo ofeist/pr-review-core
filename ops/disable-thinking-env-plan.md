@@ -86,6 +86,11 @@ For PR review, recommended value is:
 OLLAMA_THINK=false
 ```
 
+Scope decision:
+- Boolean-only support is intentional for this Qwen-focused slice.
+- Ollama also supports thinking levels such as `low`, `medium`, and `high` for some models.
+- Thinking levels, including GPT-OSS-specific behavior, are out of scope for this slice and can be added later as a separate provider-tuning feature if needed.
+
 ### `REVIEW_DISABLE_REASONING_PROMPT`
 
 Purpose:
@@ -131,6 +136,7 @@ Therefore:
 - No dynamic token sizing based on PR size.
 - No guarantee that every model/provider will obey no-thinking controls.
 - No changes to the stable markdown output contract.
+- No Ollama thinking-level tuning (`low|medium|high`) in this slice.
 
 Rationale for no `OPENAI_DISABLE_THINKING`:
 - Native OpenAI models do not share Qwen-style `enable_thinking` semantics.
@@ -199,12 +205,35 @@ Optional Qwen-specific addition after testing:
 
 Only add `/no_think` if it improves Qwen/AnythingLLM behavior without polluting other providers.
 
+### Output Sanitization
+
+File:
+- `src/core/review/output_normalizer.py`
+
+Decision:
+- Include a small defensive sanitizer for leaked visible reasoning blocks before normal section extraction.
+- Strip complete `<think>...</think>` blocks from raw model output before normalization.
+- Strip obvious leading unclosed `<think>...` leakage defensively only when it appears before the first `## AI Review` or `### Summary` heading.
+- Do not alter valid review markdown sections after normalization.
+
+Rationale:
+- Provider flags and prompt controls are best-effort.
+- AnythingLLM/proxy paths may ignore or drop provider-specific controls.
+- Without output-level cleanup, leaked reasoning can consume/contaminate the rendered review.
+
+Policy note:
+- `src/core/review/output_normalizer.py` is contract-sensitive under `.github/workflows/release-policy.yml`.
+- The implementation PR must use `release:major` unless the policy is intentionally refined before this work.
+- If using `release:major`, update `CHANGELOG.md` with a migration/compatibility note explaining that visible reasoning blocks are stripped from review output.
+- If we decide not to touch `output_normalizer.py`, then explicitly document output sanitization as a follow-up risk before implementing the adapter flags.
+
 ## Tests
 
 Update/add tests in:
 - `tests/review/test_openai_compat_adapter.py`
 - `tests/review/test_ollama_adapter.py`
 - `tests/review/test_prompt_builder.py`
+- `tests/review/test_output_normalizer.py`
 
 Coverage:
 - `OPENAI_COMPAT_DISABLE_THINKING` defaults to disabled.
@@ -220,6 +249,9 @@ Coverage:
 - Unset `OLLAMA_THINK` omits the `think` field.
 - `REVIEW_DISABLE_REASONING_PROMPT=1` adds the no-reasoning instruction.
 - Unset prompt flag keeps current prompt unchanged.
+- Complete `<think>...</think>` blocks are stripped before markdown normalization.
+- Leading unclosed `<think>` leakage before the first review heading is stripped.
+- Normal markdown sections remain intact after sanitization.
 
 Validation commands:
 
@@ -239,10 +271,16 @@ make smoke-package
 Update:
 - `src/core/review/README.md`
 - `README.md` if quick-start env examples need the new knobs
+- `ops/CONFIG_FLAGS.md` as the canonical env/config overview
 - `ops/package-testing.md`
 - `ops/consumer-integration.md`
 - `examples/ai-pr-review.sh`
 - `examples/review-bitbucket-pr.sh` only if help text should mention the new envs
+
+Config documentation decision:
+- There is currently no `ops/CONFIG_FLAGS.md`.
+- This implementation should create it and list all public runtime env vars for adapters/review behavior, including the new reasoning controls.
+- `src/core/review/README.md` remains the adapter-local matrix, but `ops/CONFIG_FLAGS.md` becomes the operations-facing config index.
 
 Document examples:
 
