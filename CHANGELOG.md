@@ -4,6 +4,28 @@ All notable changes to this project are documented in this file.
 
 This project follows Keep a Changelog style and Semantic Versioning with compatibility constraints documented in `ops/versioning-policy.md`.
 
+## [1.0.0](https://github.com/ofeist/pr-review-core/compare/v0.5.0...v1.0.0) (2026-04-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* **adapter:** visible <think>...</think> reasoning blocks are stripped from normalized review output before markdown section extraction.
+
+### Features
+
+* **adapter:** add reasoning disable controls ([03b36fe](https://github.com/ofeist/pr-review-core/commit/03b36fe7d5036b4a8feb4e92ef920cf30cfe699c))
+* **adapter:** add reasoning disable controls ([489ed9d](https://github.com/ofeist/pr-review-core/commit/489ed9de0a1fa74eddbde928429d40233ab372a9))
+* **adapter:** mark reasoning sanitizer as contract-sensitive ([cdd0e4a](https://github.com/ofeist/pr-review-core/commit/cdd0e4a2017f6d30d98279a23f01499308facbf5))
+
+
+### Documentation
+
+* **consumer:** add Jenkins Bitbucket review wrapper with intent metadata ([514fde1](https://github.com/ofeist/pr-review-core/commit/514fde1ea40174d71013629664d9e330056a4016))
+* **ops:** align reasoning plan release label ([ce7e1c9](https://github.com/ofeist/pr-review-core/commit/ce7e1c95ac695ca35e537e435ce2e041ebbecb19))
+* **ops:** include normalizer tests in reasoning plan ([3b60d5d](https://github.com/ofeist/pr-review-core/commit/3b60d5d916386738e315455213a3c2f1fcd69403))
+* **ops:** plan reasoning disable controls ([d4a529d](https://github.com/ofeist/pr-review-core/commit/d4a529d830fb27a20097bc1a54346fe71a6d07b8))
+* **ops:** refine reasoning disable plan ([b876564](https://github.com/ofeist/pr-review-core/commit/b876564d7ad1e6c460b7cd520264a86c6101fd42))
+
 ## [Unreleased]
 
 ### Features
