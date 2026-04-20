@@ -1,5 +1,6 @@
 ﻿"""Normalize model output into stable PR-comment markdown."""
 
+import re
 from typing import List
 
 
@@ -10,7 +11,7 @@ def normalize_review_markdown(raw: str) -> str:
     into a safe, explicit "No issues found." structure.
     """
 
-    text = (raw or "").strip()
+    text = _strip_reasoning_blocks(raw or "").strip()
     if not text:
         return _fallback_markdown()
 
@@ -52,6 +53,27 @@ def _extract_summary(text: str) -> str:
         return candidate
 
     return ""
+
+
+def _strip_reasoning_blocks(text: str) -> str:
+    """Remove visible reasoning leakage before section extraction."""
+
+    without_complete_blocks = re.sub(
+        r"<think\b[^>]*>.*?</think>",
+        "",
+        text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+
+    match = re.search(r"(?im)^\s*(?:## AI Review|### Summary)\s*$", without_complete_blocks)
+    if not match:
+        return without_complete_blocks
+
+    think_match = re.search(r"<think\b[^>]*>", without_complete_blocks, flags=re.IGNORECASE)
+    if think_match and think_match.start() < match.start():
+        return without_complete_blocks[match.start():]
+
+    return without_complete_blocks
 
 
 def _extract_findings(text: str) -> List[str]:

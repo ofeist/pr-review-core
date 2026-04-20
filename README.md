@@ -41,6 +41,7 @@ Out of scope right now:
 - `ops/phase-5-thin-slices.md`: Phase 5 draft slices
 - `ops/versioning-policy.md`: version bump and compatibility policy
 - `ops/compatibility-policy.md`: CLI/markdown compatibility and deprecation rules
+- `ops/CONFIG_FLAGS.md`: operations-facing runtime env/config index
 - `ops/release-checklist.md`: release/tag checklist
 - `ops/package-testing.md`: local package build/install validation steps
 - `ops/done/phase-4-exit-validation.md`: Phase 4 readiness validation and handoff notes
@@ -62,6 +63,7 @@ Notes:
 - `--adapter openai` requires both `OPENAI_API_KEY` and the `openai` extra.
 - `--adapter openai-compat` requires `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_MODEL`, and the `openai` extra.
 - Full adapter env matrix (required/optional vars): `src/core/review/README.md` under "Adapter Env Matrix (Canonical)".
+- Operations-facing env/config index: `ops/CONFIG_FLAGS.md`.
 
 For package validation steps, see `ops/package-testing.md`.
 
@@ -118,6 +120,8 @@ OpenAI-compatible:
 export OPENAI_COMPAT_BASE_URL="http://localhost:11434/v1"
 export OPENAI_COMPAT_MODEL="qwen3:32b"
 export OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK="1"
+export OPENAI_COMPAT_DISABLE_THINKING="1"
+export REVIEW_DISABLE_REASONING_PROMPT="1"
 python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapter openai-compat
 ```
 
@@ -126,6 +130,7 @@ Ollama native:
 ```bash
 export OLLAMA_BASE_URL="http://localhost:11434"
 export OLLAMA_MODEL="qwen3:32b"
+export OLLAMA_THINK="false"
 python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapter ollama
 ```
 

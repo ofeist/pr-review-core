@@ -259,7 +259,8 @@ Validation commands:
 PYTHONPATH=src pytest -q \
   tests/review/test_openai_compat_adapter.py \
   tests/review/test_ollama_adapter.py \
-  tests/review/test_prompt_builder.py
+  tests/review/test_prompt_builder.py \
+  tests/review/test_output_normalizer.py
 
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src pytest -q
 bash -n examples/review-bitbucket-pr.sh examples/ai-pr-review.sh
@@ -278,8 +279,7 @@ Update:
 - `examples/review-bitbucket-pr.sh` only if help text should mention the new envs
 
 Config documentation decision:
-- There is currently no `ops/CONFIG_FLAGS.md`.
-- This implementation should create it and list all public runtime env vars for adapters/review behavior, including the new reasoning controls.
+- This implementation creates/updates `ops/CONFIG_FLAGS.md` and lists all public runtime env vars for adapters/review behavior, including the new reasoning controls.
 - `src/core/review/README.md` remains the adapter-local matrix, but `ops/CONFIG_FLAGS.md` becomes the operations-facing config index.
 
 Document examples:

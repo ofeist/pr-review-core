@@ -36,6 +36,45 @@ class OutputNormalizerTest(unittest.TestCase):
         self.assertIn("Found a high-risk auth bug.", output)
         self.assertIn("- Missing null guard before token dereference", output)
 
+    def test_complete_think_block_is_stripped_before_normalization(self) -> None:
+        raw = (
+            "<think>\n"
+            "Private reasoning that should not appear.\n"
+            "</think>\n"
+            "### Summary\n"
+            "Review completed.\n"
+            "\n"
+            "### Findings\n"
+            "- No issues found.\n"
+        )
+
+        output = normalize_review_markdown(raw)
+
+        self.assertIn("Review completed.", output)
+        self.assertIn("- No issues found.", output)
+        self.assertNotIn("Private reasoning", output)
+        self.assertNotIn("<think>", output)
+
+    def test_leading_unclosed_think_block_is_stripped_before_heading(self) -> None:
+        raw = (
+            "<think>\n"
+            "Long reasoning with no close tag.\n"
+            "## AI Review\n"
+            "\n"
+            "### Summary\n"
+            "Review completed.\n"
+            "\n"
+            "### Findings\n"
+            "- No issues found.\n"
+        )
+
+        output = normalize_review_markdown(raw)
+
+        self.assertIn("Review completed.", output)
+        self.assertIn("- No issues found.", output)
+        self.assertNotIn("Long reasoning", output)
+        self.assertNotIn("<think>", output)
+
     def test_plain_lines_in_findings_section_are_recovered_as_bullets(self) -> None:
         raw = (
             "### Summary\n"

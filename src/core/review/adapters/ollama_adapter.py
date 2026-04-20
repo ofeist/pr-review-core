@@ -22,6 +22,7 @@ class OllamaModelAdapter:
     base_url: str
     model: str
     timeout_seconds: int = 30
+    think: Optional[bool] = None
     name: str = "ollama"
 
     @classmethod
@@ -29,6 +30,7 @@ class OllamaModelAdapter:
         base_url = os.getenv("OLLAMA_BASE_URL", "").strip()
         model = os.getenv("OLLAMA_MODEL", "").strip()
         timeout_raw = os.getenv("OLLAMA_TIMEOUT_SECONDS", "").strip()
+        think_raw = os.getenv("OLLAMA_THINK", "").strip()
 
         if not base_url:
             raise AdapterConfigError("OLLAMA_BASE_URL is required for ollama adapter.")
@@ -44,7 +46,14 @@ class OllamaModelAdapter:
         if timeout_seconds <= 0:
             raise AdapterConfigError("OLLAMA_TIMEOUT_SECONDS must be > 0.")
 
-        return cls(base_url=base_url, model=model, timeout_seconds=timeout_seconds)
+        think = _parse_optional_bool("OLLAMA_THINK", think_raw)
+
+        return cls(
+            base_url=base_url,
+            model=model,
+            timeout_seconds=timeout_seconds,
+            think=think,
+        )
 
     def generate_review(self, prompt: str) -> str:
         if not prompt.strip():
@@ -55,6 +64,8 @@ class OllamaModelAdapter:
             "prompt": prompt,
             "stream": False,
         }
+        if self.think is not None:
+            payload["think"] = self.think
         request = urllib.request.Request(
             url=self._generate_url(),
             data=json.dumps(payload).encode("utf-8"),
@@ -76,3 +87,15 @@ class OllamaModelAdapter:
 
     def _generate_url(self) -> str:
         return f"{self.base_url.rstrip('/')}/api/generate"
+
+
+def _parse_optional_bool(name: str, raw: str) -> Optional[bool]:
+    if not raw:
+        return None
+
+    normalized = raw.lower()
+    if normalized in {"true", "1", "yes", "on"}:
+        return True
+    if normalized in {"false", "0", "no", "off"}:
+        return False
+    raise AdapterConfigError(f"{name} must be true or false.")

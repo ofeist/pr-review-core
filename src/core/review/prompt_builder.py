@@ -1,5 +1,6 @@
 ﻿"""Deterministic prompt assembly for review generation."""
 
+import os
 from typing import List
 
 from core.diff.types import Change, DiffFile, DiffHunk
@@ -17,6 +18,11 @@ NOISE_CONTROL_RULES = [
     "Do not restate obvious code changes without risk.",
     "Do not speculate without evidence from the diff.",
 ]
+
+NO_REASONING_RULE = (
+    "Do not include chain-of-thought, hidden reasoning, thinking text, or analysis. "
+    "Return only the requested review markdown."
+)
 
 
 def build_review_prompt(
@@ -56,6 +62,8 @@ def build_review_prompt(
     lines.append("Noise control rules:")
     for rule in NOISE_CONTROL_RULES:
         lines.append(f"- {rule}")
+    if _env_truthy("REVIEW_DISABLE_REASONING_PROMPT"):
+        lines.append(f"- {NO_REASONING_RULE}")
     lines.append("")
 
     lines.append("Output requirements:")
@@ -101,3 +109,8 @@ def _format_change(change: Change) -> str:
     if change.type.value == "remove":
         return f"- {change.content}"
     return f"  {change.content}"
+
+
+def _env_truthy(name: str) -> bool:
+    raw = os.getenv(name, "").strip().lower()
+    return raw in {"1", "true", "yes", "on"}

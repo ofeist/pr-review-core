@@ -181,7 +181,22 @@ Example: self-hosted vLLM
 
 ```bash
 export OPENAI_COMPAT_BASE_URL="http://localhost:8000/v1"
-export OPENAI_COMPAT_MODEL="Qwen/Qwen2.5-Coder-7B-Instruct"
+export OPENAI_COMPAT_MODEL="Qwen/Qwen3.5-Coder"
+export OPENAI_COMPAT_MAX_OUTPUT_TOKENS="2000"
+export OPENAI_COMPAT_DISABLE_THINKING="1"
+python -m core.review.cli \
+  --input-format raw \
+  --from-file tests/review/fixtures/raw_small.diff \
+  --adapter openai-compat
+```
+
+Example: AnythingLLM or another proxy in front of a thinking-capable model
+
+```bash
+export OPENAI_COMPAT_BASE_URL="http://anythingllm:3001/api/v1/openai"
+export OPENAI_COMPAT_MODEL="workspace-slug"
+export OPENAI_COMPAT_DISABLE_THINKING="1"
+export REVIEW_DISABLE_REASONING_PROMPT="1"
 export OPENAI_COMPAT_MAX_OUTPUT_TOKENS="2000"
 python -m core.review.cli \
   --input-format raw \
@@ -219,6 +234,7 @@ Use this when you want direct `/api/generate` behavior:
 ```bash
 export OLLAMA_BASE_URL="http://localhost:11434"
 export OLLAMA_MODEL="qwen3:32b"
+export OLLAMA_THINK="false"
 python -m core.review.cli \
   --input-format raw \
   --from-file tests/review/fixtures/raw_small.diff \
