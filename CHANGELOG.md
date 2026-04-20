@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 This project follows Keep a Changelog style and Semantic Versioning with compatibility constraints documented in `ops/versioning-policy.md`.
 
+## [1.0.1](https://github.com/ofeist/pr-review-core/compare/v1.0.0...v1.0.1) (2026-04-20)
+
+
+### Documentation
+
+* **examples:** harden Bitbucket Jenkins review scripts ([ecf0743](https://github.com/ofeist/pr-review-core/commit/ecf07430b3841cf08ea59a9a082e725404d2dc6f))
+
 ## [1.0.0](https://github.com/ofeist/pr-review-core/compare/v0.5.0...v1.0.0) (2026-04-20)
 
 
