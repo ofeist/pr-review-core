@@ -338,12 +338,14 @@ git commit -m "feat(adapter): add reasoning disable controls"
 ```
 
 PR label:
-- `release:minor`
+- `release:major`
 
 Reason:
 - Adds public environment configuration.
 - Defaults remain unchanged.
-- Backward-compatible behavior.
+- The adapter/prompt flags are backward-compatible.
+- The planned output sanitizer touches `src/core/review/output_normalizer.py`, which is contract-sensitive under the current release policy.
+- Include a `CHANGELOG.md` migration/compatibility note that visible `<think>...</think>` reasoning blocks are stripped from review output.
 
 ## Release Flow
 
