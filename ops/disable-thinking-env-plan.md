@@ -259,7 +259,8 @@ Validation commands:
 PYTHONPATH=src pytest -q \
   tests/review/test_openai_compat_adapter.py \
   tests/review/test_ollama_adapter.py \
-  tests/review/test_prompt_builder.py
+  tests/review/test_prompt_builder.py \
+  tests/review/test_output_normalizer.py
 
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=src pytest -q
 bash -n examples/review-bitbucket-pr.sh examples/ai-pr-review.sh
