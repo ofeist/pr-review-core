@@ -1,4 +1,11 @@
-﻿import unittest
+import sys
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
 
 from core.review.noise_filter import filter_review_markdown
 
@@ -227,7 +234,7 @@ class NoiseFilterTest(unittest.TestCase):
             "### Summary\n"
             "This PR modifies the Jenkins stage and introduces a hardcoded secret.\n\n"
             "### Findings\n"
-            "- **Security Issue**: A hardcoded secret (`secret = \"21423agdfsagfsadg55525\"`) has been added directly in the script; this must be removed immediately and managed via Jenkins Credentials or environment variables to prevent exposure in version control.\n"
+            '- **Security Issue**: A hardcoded secret (`secret = "21423agdfsagfsadg55525"`) has been added directly in the script; this must be removed immediately and managed via Jenkins Credentials or environment variables to prevent exposure in version control.\n'
             "- **Readability/Maintainability**: The variable `dummyVariable` appears to be debug code or a placeholder with no functional purpose and should be removed before merging.\n"
             "- **Configuration Risk**: The comment regarding `OPENAI_COMPAT_MAX_OUTPUT_TOKENS` was moved to the new line but now describes a variable that was present in the previous version; ensure the comment accurately reflects the current context of why the value was reduced from 20000 to 15000.\n"
         )
@@ -255,7 +262,7 @@ class NoiseFilterTest(unittest.TestCase):
             "### Summary\n"
             "This PR claims to disable thinking but leaves the flag disabled in code.\n\n"
             "### Findings\n"
-            "- **Logic Error:** The PR title states \"disable thinking\", but the corresponding environment variable `OPENAI_COMPAT_DISABLE_THINKING` is commented out (`//`), meaning the setting will not actually be applied.\n"
+            '- **Logic Error:** The PR title states "disable thinking", but the corresponding environment variable `OPENAI_COMPAT_DISABLE_THINKING` is commented out (`//`), meaning the setting will not actually be applied.\n'
         )
 
         output = filter_review_markdown(raw)
