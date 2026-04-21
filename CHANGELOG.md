@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 This project follows Keep a Changelog style and Semantic Versioning with compatibility constraints documented in `ops/versioning-policy.md`.
 
+## [1.0.2](https://github.com/ofeist/pr-review-core/compare/v1.0.1...v1.0.2) (2026-04-21)
+
+
+### Documentation
+
+* **agentic:** add task for noise filter regression fix ([df6381f](https://github.com/ofeist/pr-review-core/commit/df6381f362ceb582ef7a5e22b54b6e706f13a919))
+
 ## [1.0.1](https://github.com/ofeist/pr-review-core/compare/v1.0.0...v1.0.1) (2026-04-20)
 
 
