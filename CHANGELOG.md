@@ -198,9 +198,11 @@ This project follows Keep a Changelog style and Semantic Versioning with compati
 
 ### Fixed
 - Keep high-signal hardcoded-secret and commented-out configuration findings in filtered review output while avoiding false evidence matches from generic phrases such as `new line`.
+- Keep high-signal security findings that mention CI, pipeline, or workflow context when they include concrete issue and evidence signals, while still filtering low-signal CI/meta commentary.
 
 ### Migration
 - No migration required for existing consumers. Default CLI behavior and canonical review output remain unchanged unless `--agentic-demo` is explicitly used.
+- Review-output behavior is slightly less aggressive for CI-context security findings; release intent should be checked explicitly because filtered findings shown to users can change.
 
 ## [0.1.0] - 2026-02-12
 ### Added

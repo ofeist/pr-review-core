@@ -32,6 +32,31 @@ RISK_KEYWORDS = {
     "data loss",
 }
 
+SECURITY_KEYWORDS = {
+    "security",
+    "secret",
+    "secrets",
+    "credential",
+    "credentials",
+    "password",
+    "private key",
+    "api key",
+    "token",
+    "auth",
+    "permission",
+    "plaintext",
+    "hardcoded",
+    "hard-coded",
+    "exposed",
+    "exposure",
+    "leak",
+    "leaked",
+    "injection",
+    "xss",
+    "sql",
+    "unsafe",
+}
+
 STYLE_KEYWORDS = {
     "formatting",
     "style",
@@ -325,7 +350,16 @@ def _is_meta_comment(text: str) -> bool:
 
 
 def _is_ci_meta_comment(text: str) -> bool:
-    return _contains_any(text, CI_META_KEYWORDS)
+    return _contains_any(text, CI_META_KEYWORDS) and not _is_high_signal_ci_security_finding(text)
+
+
+def _is_high_signal_ci_security_finding(text: str) -> bool:
+    return (
+        _contains_any(text, CI_META_KEYWORDS)
+        and _contains_any(text, SECURITY_KEYWORDS)
+        and _has_issue_claim(text)
+        and _has_evidence(text)
+    )
 
 
 def _is_test_coverage_affirmation(text: str) -> bool:

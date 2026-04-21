@@ -243,6 +243,19 @@ class NoiseFilterTest(unittest.TestCase):
         self.assertIn("hardcoded secret", output)
         self.assertNotIn("- No issues found.", output)
 
+    def test_keeps_security_finding_that_mentions_pipeline_script(self) -> None:
+        raw = (
+            "## AI Review\n\n"
+            "### Summary\n"
+            "This PR updates the pipeline script.\n\n"
+            "### Findings\n"
+            "- **Security Issue**: The pipeline script hardcodes an API token in plaintext, which exposes credentials in version control because the secret is committed directly in the workflow file.\n"
+        )
+
+        output = filter_review_markdown(raw)
+        self.assertIn("pipeline script hardcodes an API token", output)
+        self.assertNotIn("- No issues found.", output)
+
     def test_does_not_treat_generic_new_line_phrase_as_evidence(self) -> None:
         raw = (
             "## AI Review\n\n"
@@ -268,6 +281,19 @@ class NoiseFilterTest(unittest.TestCase):
         output = filter_review_markdown(raw)
         self.assertIn("commented out", output)
         self.assertNotIn("- No issues found.", output)
+
+    def test_filters_maintainability_only_pipeline_commentary(self) -> None:
+        raw = (
+            "## AI Review\n\n"
+            "### Summary\n"
+            "This PR updates the workflow.\n\n"
+            "### Findings\n"
+            "- The pipeline workflow could be refactored for readability because the current step names are a bit verbose.\n"
+        )
+
+        output = filter_review_markdown(raw)
+        self.assertIn("- No issues found.", output)
+        self.assertNotIn("pipeline workflow could be refactored", output)
 
 
 if __name__ == "__main__":
