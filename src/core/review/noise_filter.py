@@ -139,13 +139,18 @@ EVIDENCE_MARKERS = {
     "e.g.",
     "evidence",
     "at line",
-    "line ",
     "hunk ",
     "file ",
     "in `",
     "before ",
     "after ",
     "when",
+    "commented out",
+    "hardcoded",
+    "committed",
+    "plaintext",
+    "directly in the script",
+    "credential",
 }
 
 ISSUE_CLAIM_KEYWORDS = {

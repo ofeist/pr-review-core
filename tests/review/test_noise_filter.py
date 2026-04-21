@@ -221,6 +221,47 @@ class NoiseFilterTest(unittest.TestCase):
         self.assertNotIn("good performance optimization", output)
         self.assertNotIn("traceability of development progress", output)
 
+    def test_keeps_hardcoded_secret_finding_from_real_output(self) -> None:
+        raw = (
+            "## AI Review\n\n"
+            "### Summary\n"
+            "This PR modifies the Jenkins stage and introduces a hardcoded secret.\n\n"
+            "### Findings\n"
+            "- **Security Issue**: A hardcoded secret (`secret = \"21423agdfsagfsadg55525\"`) has been added directly in the script; this must be removed immediately and managed via Jenkins Credentials or environment variables to prevent exposure in version control.\n"
+            "- **Readability/Maintainability**: The variable `dummyVariable` appears to be debug code or a placeholder with no functional purpose and should be removed before merging.\n"
+            "- **Configuration Risk**: The comment regarding `OPENAI_COMPAT_MAX_OUTPUT_TOKENS` was moved to the new line but now describes a variable that was present in the previous version; ensure the comment accurately reflects the current context of why the value was reduced from 20000 to 15000.\n"
+        )
+
+        output = filter_review_markdown(raw)
+        self.assertIn("hardcoded secret", output)
+        self.assertNotIn("- No issues found.", output)
+
+    def test_does_not_treat_generic_new_line_phrase_as_evidence(self) -> None:
+        raw = (
+            "## AI Review\n\n"
+            "### Summary\n"
+            "This PR changes a config comment.\n\n"
+            "### Findings\n"
+            "- **Configuration Risk**: The comment regarding `OPENAI_COMPAT_MAX_OUTPUT_TOKENS` was moved to the new line but now describes a variable that was present in the previous version; ensure the comment accurately reflects the current context of why the value was reduced from 20000 to 15000.\n"
+        )
+
+        output = filter_review_markdown(raw)
+        self.assertIn("- No issues found.", output)
+        self.assertNotIn("OPENAI_COMPAT_MAX_OUTPUT_TOKENS", output)
+
+    def test_keeps_commented_out_flag_logic_finding(self) -> None:
+        raw = (
+            "## AI Review\n\n"
+            "### Summary\n"
+            "This PR claims to disable thinking but leaves the flag disabled in code.\n\n"
+            "### Findings\n"
+            "- **Logic Error:** The PR title states \"disable thinking\", but the corresponding environment variable `OPENAI_COMPAT_DISABLE_THINKING` is commented out (`//`), meaning the setting will not actually be applied.\n"
+        )
+
+        output = filter_review_markdown(raw)
+        self.assertIn("commented out", output)
+        self.assertNotIn("- No issues found.", output)
+
 
 if __name__ == "__main__":
     unittest.main()
