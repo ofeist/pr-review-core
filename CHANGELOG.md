@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file.
 
 This project follows Keep a Changelog style and Semantic Versioning with compatibility constraints documented in `ops/versioning-policy.md`.
 
+## [1.0.3](https://github.com/ofeist/pr-review-core/compare/v1.0.2...v1.0.3) (2026-04-21)
+
+
+### Bug Fixes
+
+* **noise-filter:** retain security findings in CI context ([1c9a0e2](https://github.com/ofeist/pr-review-core/commit/1c9a0e2c7e350579394594c83a92a9e978b3f9c8))
+* **noise-filter:** retain security findings in CI context ([392d226](https://github.com/ofeist/pr-review-core/commit/392d226e5586ca2ed882895081c6e4c4a0c06cbb))
+
 ## [1.0.2](https://github.com/ofeist/pr-review-core/compare/v1.0.1...v1.0.2) (2026-04-21)
 
 
