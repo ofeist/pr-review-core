@@ -1,191 +1,122 @@
-﻿# pr-review-core
+# pr-review-core
 
 Platform-agnostic core for AI-assisted pull request review.
 
-## Vision
-This project builds a reusable PR review engine with this strategy:
-- Build GitHub-first for fast iteration and adoption.
-- Keep core logic platform-agnostic.
-- Add Bitbucket integration after GitHub flow is stable.
+`pr-review-core` turns git diffs into stable PR-review markdown. It is designed to be embedded in GitHub Actions, Bitbucket/Jenkins pipelines, or custom wrappers without coupling the review engine to one hosting platform.
 
-Roadmap: `ops/ROADMAP.md`
+## Why This Exists
 
-## Current Scope
-Implemented in this repository:
-- Phase 1: diff parsing foundation (`src/core/diff`)
-- Phase 2: review core (`src/core/review`)
-- Phase 3 MVP: GitHub Actions PR workflow with comment upsert
-- Phase 4: packaging and distribution readiness completed
+- Keep review logic separate from GitHub/Bitbucket-specific automation.
+- Reuse the same review pipeline across repositories and CI systems.
+- Support local, hosted, and self-hosted model backends behind a consistent CLI.
+- Produce predictable markdown output that is suitable for PR comments and artifacts.
 
-Out of scope right now:
-- GitHub App backend (Phase 5)
-- Billing, tenancy, hosted control plane
-- Bitbucket adapter (Phase 6)
+## What It Does
 
-## Repository Layout
-- `src/core/README.md`: architecture boundaries
-- `src/core/diff/README.md`: diff parsing module contract
-- `src/core/review/README.md`: review module contract and CLI
-- `.github/workflows/ai-review.yml`: GitHub PR review workflow
-- `.github/workflows/package-smoke.yml`: package build/install/smoke validation workflow
-- `.github/workflows/release-assets.yml`: tag-driven GitHub Release asset publishing (`.whl`/`.tar.gz`)
-- `.github/workflows/release-consistency.yml`: tag/version/changelog consistency validation
-- `adapters/github/README.md`: GitHub adapter runbook
-- `adapters/github/scripts/extract_pr_diff.py`: robust PR diff extraction script
-- `CHANGELOG.md`: release notes and user-visible changes
-- `ops/ROADMAP.md`: project roadmap
-- `ops/done/phase-4-thin-slices.md`: Phase 4 execution slices (completed)
-- `ops/done/phase-4-1-thin-slices.md`: Phase 4.1 execution slices (completed)
-- `ops/done/phase-4-2-thin-slices.md`: Phase 4.2 execution slices (completed)
-- `ops/next-thin-slices.md`: active execution queue (phase-agnostic)
-- `ops/phase-5-thin-slices.md`: Phase 5 draft slices
-- `ops/versioning-policy.md`: version bump and compatibility policy
-- `ops/compatibility-policy.md`: CLI/markdown compatibility and deprecation rules
-- `ops/CONFIG_FLAGS.md`: operations-facing runtime env/config index
-- `ops/release-checklist.md`: release/tag checklist
-- `ops/package-testing.md`: local package build/install validation steps
-- `ops/done/phase-4-exit-validation.md`: Phase 4 readiness validation and handoff notes
-- `ops/done/phase-4-1-exit-validation.md`: Phase 4.1 readiness validation and handoff notes
-- `ops/done/phase-4-2-exit-validation.md`: Phase 4.2 readiness validation and handoff notes
-- `ops/consumer-integration.md`: consumer quickstart for GitHub/Bitbucket integration
-- `ops/IMPLEMENTATION-GUARDRAILS.md`: implementation boundaries and contract guardrails
-- `ops/done/phase-3-validation-checklist.md`: Phase 3 manual acceptance checklist
+- Reads raw unified diffs or parsed diff JSON.
+- Chunks large diffs and falls back safely when full review fails.
+- Normalizes output into stable markdown sections.
+- Passes PR title/body into prompt context so `### Intent` is meaningful.
+- Supports multiple adapters: `fake`, `openai`, `openai-compat`, `ollama`, `anything-chat`.
+- Works as a local CLI or as a small building block inside CI wrappers.
 
-## Install Matrix
-- Base/core only:
-  - `python -m pip install .`
-- With OpenAI and OpenAI-compatible adapter support:
-  - `python -m pip install ".[openai]"`
+## Install
 
-Notes:
-- Base install is sufficient for `--adapter fake`.
-- Base install is sufficient for `--adapter ollama`.
-- `--adapter openai` requires both `OPENAI_API_KEY` and the `openai` extra.
-- `--adapter openai-compat` requires `OPENAI_COMPAT_BASE_URL`, `OPENAI_COMPAT_MODEL`, and the `openai` extra.
-- Full adapter env matrix (required/optional vars): `src/core/review/README.md` under "Adapter Env Matrix (Canonical)".
-- Operations-facing env/config index: `ops/CONFIG_FLAGS.md`.
-
-For package validation steps, see `ops/package-testing.md`.
-
-## Consumer Quickstart
-Install in a consumer repository:
+Base install:
 
 ```bash
-python -m pip install "git+https://github.com/ofeist/pr-review-core.git@v0.3.0"
+python -m pip install .
 ```
 
-Run on a diff file:
+With OpenAI and OpenAI-compatible adapter support:
 
 ```bash
-python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapter fake
+python -m pip install ".[openai]"
 ```
 
-For full GitHub and Bitbucket interim integration patterns, including a Jenkins + Bitbucket Data Center example, see `ops/consumer-integration.md`.
+For release wheels, exact version pinning, and package smoke validation, see `ops/package-testing.md`.
 
-### Version Pinning (Consumer Guidance)
-- Pin exact versions for reproducibility (`==` or exact git tag).
-- Do not use floating ranges such as `>=` for production automation.
-- Upgrade on a planned cadence (for example weekly/biweekly), not ad hoc per PR.
+## Quick Start
 
-## Local Usage
-Raw diff review:
+Local fake-adapter review from git diff:
 
 ```bash
-PYTHONPATH=src git diff origin/main...HEAD | python -m core.review.cli --input-format raw --adapter fake
+git diff origin/main...HEAD | python -m core.review.cli --input-format raw --adapter fake
 ```
 
-Parsed JSON review:
+OpenAI-compatible review, for example vLLM/Qwen:
 
 ```bash
-PYTHONPATH=src git diff origin/main...HEAD | python -m core.diff.cli | python -m core.review.cli --input-format parsed-json --adapter fake
-```
-
-For installed-package workflows (including direct stdin from `git diff`), see `ops/package-testing.md`.
-
-Agentic demo review shape:
-
-```bash
-PYTHONPATH=src git diff origin/main...HEAD | python -m core.review.cli --input-format raw --adapter fake --agentic-demo
-```
-
-Notes:
-- `--agentic-demo` is a deterministic showcase mode for staged `Plan`, `Review`, `QA`, and `Final Recommendation` sections.
-- It does not run real planner/reviewer/QA agents or multiple model calls.
-
-## Adapter Examples
-
-OpenAI-compatible:
-
-```bash
-export OPENAI_COMPAT_BASE_URL="http://localhost:11434/v1"
-export OPENAI_COMPAT_MODEL="qwen3:32b"
-export OPENAI_COMPAT_ENABLE_OLLAMA_FALLBACK="1"
+export OPENAI_COMPAT_BASE_URL="http://localhost:8000/v1"
+export OPENAI_COMPAT_MODEL="Qwen/Qwen3.5-Coder"
 export OPENAI_COMPAT_DISABLE_THINKING="1"
 export REVIEW_DISABLE_REASONING_PROMPT="1"
-python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapter openai-compat
+
+git diff origin/main...HEAD | python -m core.review.cli --input-format raw --adapter openai-compat
 ```
 
-Ollama native:
+Review from a diff file:
 
 ```bash
-export OLLAMA_BASE_URL="http://localhost:11434"
-export OLLAMA_MODEL="qwen3:32b"
-export OLLAMA_THINK="false"
-python -m core.review.cli --input-format raw --from-file path/to/pr.diff --adapter ollama
+python -m core.review.cli \
+  --input-format raw \
+  --from-file path/to/pr.diff \
+  --adapter fake
 ```
 
-For full required/optional env vars and defaults, see `src/core/review/README.md` ("Adapter Env Matrix (Canonical)").
+## Adapters
 
-## GitHub Actions Setup (Phase 3 MVP)
-Workflow file:
-- `.github/workflows/ai-review.yml`
+| Adapter | Purpose |
+| --- | --- |
+| `fake` | Deterministic local/testing adapter. |
+| `openai` | OpenAI API adapter. |
+| `openai-compat` | OpenAI-compatible endpoints such as vLLM or gateways. |
+| `ollama` | Native Ollama API adapter. |
+| `anything-chat` | Custom SSE-style Anything chat endpoint. |
 
-Trigger:
-- `pull_request`: `opened`, `synchronize`, `reopened`
+For the full adapter env matrix and CLI details, see `src/core/review/README.md`.
+For the operations-facing env/config index, see `ops/CONFIG_FLAGS.md`.
 
-Required workflow permissions:
-- `contents: read`
-- `pull-requests: write`
-- `issues: write`
+## Integration Examples
 
-### Configuration
-Repository Variables:
-- `AI_REVIEW_ADAPTER_MODE`: `fake` (default) or `openai`
-- `OPENAI_MODEL` (optional)
-- `OPENAI_TIMEOUT_SECONDS` (optional)
-- `OPENAI_MAX_OUTPUT_TOKENS` (optional, default `1200`)
-- `AI_REVIEW_MAX_COMMENT_CHARS` (optional, default `60000`)
+- GitHub, Bitbucket, and Jenkins consumer guidance: `ops/consumer-integration.md`
+- Jenkins + Bitbucket wrapper example: `examples/ai-pr-review.sh`
+- Bitbucket helper for branch/PR flows: `examples/review-bitbucket-pr.sh`
 
-Repository Secrets:
-- `OPENAI_API_KEY` (required only for `openai` mode)
+These wrappers keep platform-specific auth, comment posting, and orchestration outside the core package.
 
-### Behavior Summary
-- Extracts PR diff via `adapters/github/scripts/extract_pr_diff.py`.
-- Runs `core.review.cli` in selected adapter mode.
-- Upserts one managed PR comment using marker `<!-- ai-pr-review:managed -->`.
-- Handles failure and timeout with controlled fallback markdown.
-- Handles empty/ignored-only diffs with "No actionable code changes" output.
-- Truncates oversized comment output and points to workflow artifact.
+## Documentation
 
-## Troubleshooting
-- Missing OpenAI key in `openai` mode:
-Workflow posts controlled fallback summary instead of hard failing.
+- `src/core/review/README.md`: review pipeline, adapters, CLI, env matrix
+- `ops/CONFIG_FLAGS.md`: canonical runtime configuration reference
+- `ops/consumer-integration.md`: package-mode GitHub/Bitbucket/Jenkins integration
+- `ops/package-testing.md`: build/install/smoke validation
+- `CHANGELOG.md`: release notes and compatibility-relevant changes
 
-- Duplicate comments:
-Ensure marker `<!-- ai-pr-review:managed -->` remains unchanged.
+## Project Scope
 
-- No actionable changes:
-Expected behavior for empty or fully ignored diffs.
+This repository contains the reusable PR review engine.
 
-- Oversized output:
-Workflow truncates comment and keeps full/previewed content in artifact.
+It does not aim to be a hosted control plane, billing system, or tenant-management backend. Platform-specific automation belongs in wrappers, workflows, and consumer repositories.
 
-## Roadmap Snapshot
-- Phase 1: Diff Foundation
-- Phase 2: Review Core
-- Phase 3: GitHub MVP integration
-- Phase 4: Packaging and distribution readiness
-- Phase 5: GitHub App and commercial readiness
-- Phase 6: Bitbucket adapter parity
+## Development
 
-See `ops/ROADMAP.md` for full details.
+Run the test suite:
+
+```bash
+PYTHONPATH=src pytest -q
+```
+
+Run package smoke validation:
+
+```bash
+make smoke-package
+```
+
+## Contributing
+
+Contributions that improve review quality, adapter support, packaging, and integration ergonomics are welcome. Keep platform-specific orchestration outside the core package unless it is needed to preserve a stable reusable interface.
+
+## License
+
+MIT
