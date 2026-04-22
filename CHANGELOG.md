@@ -4,6 +4,14 @@ All notable changes to this project are documented in this file.
 
 This project follows Keep a Changelog style and Semantic Versioning with compatibility constraints documented in `ops/versioning-policy.md`.
 
+## [1.0.4](https://github.com/ofeist/pr-review-core/compare/v1.0.3...v1.0.4) (2026-04-22)
+
+
+### Documentation
+
+* **ops:** streamline consumer integration and package testing guides ([d0c2e17](https://github.com/ofeist/pr-review-core/commit/d0c2e1761f012f24e88d71161aa5929b3062af66))
+* **readme:** rewrite root README for OSS landing page ([5e1017d](https://github.com/ofeist/pr-review-core/commit/5e1017ddf38da2f1e471798b5d32216e64326d46))
+
 ## [1.0.3](https://github.com/ofeist/pr-review-core/compare/v1.0.2...v1.0.3) (2026-04-21)
 
 
