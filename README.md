@@ -1,5 +1,10 @@
 # pr-review-core
 
+![Release](https://img.shields.io/github/v/release/ofeist/pr-review-core)
+![CI](https://github.com/ofeist/pr-review-core/actions/workflows/package-smoke.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 Platform-agnostic core for AI-assisted pull request review.
 
 `pr-review-core` turns git diffs into stable PR-review markdown. It is designed to be embedded in GitHub Actions, Bitbucket/Jenkins pipelines, or custom wrappers without coupling the review engine to one hosting platform.
@@ -63,6 +68,32 @@ python -m core.review.cli \
   --from-file path/to/pr.diff \
   --adapter fake
 ```
+
+## What a Review Looks Like
+
+Every adapter produces the same stable markdown structure, so CI comments stay diff-able and predictable:
+
+```bash
+git diff origin/main...HEAD | python -m core.review.cli --input-format raw --adapter fake
+```
+
+```markdown
+## AI Review
+
+### Summary
+Changed 1 file: `app.py`. Reviewed 1 chunk(s). No actionable findings after filtering.
+
+### Intent
+Intent not provided.
+
+### Change Summary
+- `app.py` (+3/-1, hunks: 1)
+
+### Findings
+- No issues found.
+```
+
+With a real adapter (`openai`, `openai-compat`, `ollama`), `### Findings` contains file- and line-anchored review comments.
 
 ## Adapters
 
