@@ -76,6 +76,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Render deterministic staged demo output (plan/review/qa/final recommendation).",
     )
+    parser.add_argument(
+        "--metrics-output",
+        default=None,
+        help="Review generation latency.",
+    )
     return parser
 
 
