@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 This project follows Keep a Changelog style and Semantic Versioning with compatibility constraints documented in `ops/versioning-policy.md`.
 
+## [1.0.5](https://github.com/ofeist/pr-review-core/compare/v1.0.4...v1.0.5) (2026-11-17)
+
+
+### Documentation
+
+* **readme:** remove badges ([5d4a9a4](https://github.com/ofeist/pr-review-core/commit/5d4a9a43bfce13e99a1549b35540c45fdc37887d))
+
 ## [1.0.4](https://github.com/ofeist/pr-review-core/compare/v1.0.3...v1.0.4) (2026-04-22)
 
 
